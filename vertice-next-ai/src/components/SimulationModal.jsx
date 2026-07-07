@@ -5,9 +5,9 @@ import { avatarPalette } from "../lib/derive";
 import { formatDataCompleta } from "../utils/date";
 
 // Roteiro de uma simulação de atendimento via WhatsApp. Isso NÃO é dado do
-// sistema — é o texto de uma demonstração guiada. O único dado real que sai
-// daqui é o objeto gravado no Firestore quando a confeiteira clica em
-// "Concluir e criar briefing".
+// sistema — é o texto fixo usado para conduzir a simulação guiada. O único
+// dado real que sai daqui é o objeto gravado no Firestore quando a
+// confeiteira clica em "Concluir e criar briefing".
 const simulationScript = [
   { autor: "cliente", texto: "Oi, boa tarde!" },
   { autor: "ia", texto: "Boa tarde! Seja bem-vinda 💛 Pra qual ocasião seria o bolo?" },
@@ -87,15 +87,15 @@ export default function SimulationModal({ onClose, onConcluir }) {
   };
 
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-stone-900/40 px-4">
-      <div className="flex h-[85vh] w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-xl">
-        <div className="flex w-full flex-col border-r border-stone-200 sm:w-1/2">
-          <div className="flex items-center justify-between border-b border-stone-200 px-5 py-4">
+    <div className="fixed inset-0 z-30 flex items-center justify-center bg-stone-900/40 px-4 dark:bg-black/60">
+      <div className="flex h-[85vh] w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-stone-900">
+        <div className="flex w-full flex-col border-r border-stone-200 sm:w-1/2 dark:border-stone-800">
+          <div className="flex items-center justify-between border-b border-stone-200 px-5 py-4 dark:border-stone-800">
             <div className="flex items-center gap-2">
-              <MessageCircle className="h-4 w-4 text-stone-400" />
-              <p className="text-sm font-semibold text-stone-900">Simulação de atendimento</p>
+              <MessageCircle className="h-4 w-4 text-stone-400 dark:text-stone-500" />
+              <p className="text-sm font-semibold text-stone-900 dark:text-stone-50">Simulação de atendimento</p>
             </div>
-            <button onClick={onClose} className="text-stone-400 hover:text-stone-600">
+            <button onClick={onClose} className="text-stone-400 hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -103,14 +103,14 @@ export default function SimulationModal({ onClose, onConcluir }) {
           <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
             {visiveis.map((m, i) => (
               <div key={i} className={`flex ${m.autor === "cliente" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[80%] rounded-2xl px-3.5 py-2 text-sm ${m.autor === "cliente" ? "bg-rose-600 text-white" : "bg-stone-100 text-stone-700"}`}>{m.texto}</div>
+                <div className={`max-w-[80%] rounded-2xl px-3.5 py-2 text-sm ${m.autor === "cliente" ? "bg-rose-600 text-white" : "bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300"}`}>{m.texto}</div>
               </div>
             ))}
           </div>
 
-          <div className="border-t border-stone-200 p-4">
+          <div className="border-t border-stone-200 p-4 dark:border-stone-800">
             {erro && (
-              <div className="mb-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
+              <div className="mb-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300">
                 {erro}
               </div>
             )}
@@ -132,10 +132,10 @@ export default function SimulationModal({ onClose, onConcluir }) {
           </div>
         </div>
 
-        <div className="hidden w-1/2 flex-col bg-stone-50 sm:flex">
-          <div className="border-b border-stone-200 px-5 py-4">
-            <p className="text-sm font-semibold text-stone-900">Briefing sendo preenchido</p>
-            <p className="text-xs text-stone-400">Ao concluir, este objeto é enviado ao Webhook do n8n, que valida e grava no Firestore</p>
+        <div className="hidden w-1/2 flex-col bg-stone-50 sm:flex dark:bg-stone-950/60">
+          <div className="border-b border-stone-200 px-5 py-4 dark:border-stone-800">
+            <p className="text-sm font-semibold text-stone-900 dark:text-stone-50">Briefing sendo preenchido</p>
+            <p className="text-xs text-stone-400 dark:text-stone-500">Ao concluir, este objeto é enviado ao Webhook do n8n, que valida e grava no Firestore</p>
           </div>
           <div className="flex-1 space-y-1 overflow-y-auto px-3 py-3">
             <InfoRow icon={Sparkles} label="Evento" value={liveBriefing.evento} highlight={!!liveBriefing.evento} />

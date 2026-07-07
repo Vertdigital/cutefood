@@ -38,12 +38,12 @@ export default function AgendaPage({ briefings, loading, onSelect }) {
     <div>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <PageHeader title="Agenda" subtitle="Pedidos organizados por data, lidos do Firestore." />
-        <div className="flex items-center gap-2 rounded-lg border border-stone-200 bg-white p-1">
+        <div className="flex items-center gap-2 rounded-lg border border-stone-200 bg-white p-1 dark:border-stone-800 dark:bg-stone-900">
           {["mensal", "semanal"].map((v) => (
             <button
               key={v}
               onClick={() => setVisao(v)}
-              className={`rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-colors ${visao === v ? "bg-rose-600 text-white" : "text-stone-500 hover:bg-stone-50"}`}
+              className={`rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-colors ${visao === v ? "bg-rose-600 text-white" : "text-stone-500 hover:bg-stone-50 dark:text-stone-400 dark:hover:bg-stone-800"}`}
             >
               {v}
             </button>
@@ -51,34 +51,34 @@ export default function AgendaPage({ briefings, loading, onSelect }) {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-stone-200 bg-white p-5">
+      <div className="rounded-2xl border border-stone-200 bg-white p-5 dark:border-stone-800 dark:bg-stone-900">
         {loading ? (
           <Skeleton className="h-80" />
         ) : (
           <>
             <div className="mb-4 flex items-center justify-between">
-              <button onClick={() => trocarMes(-1)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-stone-200 text-stone-500 hover:bg-stone-50">
+              <button onClick={() => trocarMes(-1)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-stone-200 text-stone-500 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800">
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <p className="text-sm font-semibold text-stone-900">{info.label}</p>
-              <button onClick={() => trocarMes(1)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-stone-200 text-stone-500 hover:bg-stone-50">
+              <p className="text-sm font-semibold text-stone-900 dark:text-stone-50">{info.label}</p>
+              <button onClick={() => trocarMes(1)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-stone-200 text-stone-500 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800">
                 <ChevronRight className="h-4 w-4" />
               </button>
             </div>
 
             {visao === "mensal" ? (
               <div>
-                <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[11px] font-medium text-stone-400">
+                <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[11px] font-medium text-stone-400 dark:text-stone-500">
                   {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((d) => (
                     <div key={d}>{d}</div>
                   ))}
                 </div>
                 <div className="grid grid-cols-7 gap-1">
                   {celulas.map((d, i) => (
-                    <div key={i} className={`min-h-[72px] rounded-lg border p-1.5 text-xs ${d ? "border-stone-100 hover:border-stone-200" : "border-transparent"}`}>
+                    <div key={i} className={`min-h-[72px] rounded-lg border p-1.5 text-xs ${d ? "border-stone-100 hover:border-stone-200 dark:border-stone-800 dark:hover:border-stone-700" : "border-transparent"}`}>
                       {d && (
                         <>
-                          <p className="mb-1 text-stone-400">{d}</p>
+                          <p className="mb-1 text-stone-400 dark:text-stone-500">{d}</p>
                           <div className="space-y-1">
                             {(porDia[d] || []).map((b) => (
                               <Tooltip key={b.id} text={`${b.cliente} — ${b.status}`}>
@@ -101,12 +101,12 @@ export default function AgendaPage({ briefings, loading, onSelect }) {
             ) : (
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-7">
                 {semana.map((d) => (
-                  <div key={d} className="rounded-lg border border-stone-100 p-2">
-                    <p className="mb-2 text-xs font-medium text-stone-400">
+                  <div key={d} className="rounded-lg border border-stone-100 p-2 dark:border-stone-800">
+                    <p className="mb-2 text-xs font-medium text-stone-400 dark:text-stone-500">
                       {d} de {mesAtual}
                     </p>
                     <div className="space-y-1.5">
-                      {(porDia[d] || []).length === 0 && <p className="text-[11px] text-stone-300">Sem pedidos</p>}
+                      {(porDia[d] || []).length === 0 && <p className="text-[11px] text-stone-300 dark:text-stone-600">Sem pedidos</p>}
                       {(porDia[d] || []).map((b) => (
                         <button
                           key={b.id}

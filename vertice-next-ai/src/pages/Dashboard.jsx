@@ -33,14 +33,14 @@ export default function DashboardPage({ briefings, loading, error, onSelect, onS
       </div>
 
       {semDados ? (
-        <div className="rounded-2xl border border-stone-200 bg-white">
+        <div className="rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
           <EmptyState
             icon={DatabaseZap}
             title="Sua coleção 'briefings' está vazia"
             description={
               onSeed
-                ? "Popule com dados de exemplo para ver o Dashboard, o Pipeline e o Analytics funcionando com dados reais do Firestore."
-                : "Aguarde a chegada de novos atendimentos — nenhum dado de exemplo é usado em produção."
+                ? "Popule com dados de teste para ver o Dashboard, o Pipeline e o Analytics funcionando com dados reais do Firestore."
+                : "Aguarde a chegada de novos atendimentos — nenhum dado de teste é usado em produção."
             }
             action={onSeed && <SeedButton onSeed={onSeed} seeding={seeding} />}
           />
@@ -55,20 +55,20 @@ export default function DashboardPage({ briefings, loading, error, onSelect, onS
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <MetricCard icon={Inbox} label="Briefings hoje" value={counts.hoje} tint="bg-stone-100 text-stone-600" />
-              <MetricCard icon={Clock3} label="Aguardando orçamento" value={counts.aguardando} tint="bg-amber-50 text-amber-600" />
-              <MetricCard icon={Loader2} label="Em atendimento" value={counts.emAtendimento} tint="bg-sky-50 text-sky-600" />
-              <MetricCard icon={PackageCheck} label="Pedidos fechados" value={counts.fechados} tint="bg-emerald-50 text-emerald-600" />
+              <MetricCard icon={Inbox} label="Briefings hoje" value={counts.hoje} tint="bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-300" />
+              <MetricCard icon={Clock3} label="Aguardando orçamento" value={counts.aguardando} tint="bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400" />
+              <MetricCard icon={Loader2} label="Em atendimento" value={counts.emAtendimento} tint="bg-sky-50 text-sky-600 dark:bg-sky-950/50 dark:text-sky-400" />
+              <MetricCard icon={PackageCheck} label="Pedidos fechados" value={counts.fechados} tint="bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400" />
             </div>
           )}
 
-          <div className="mt-8 rounded-2xl border border-stone-200 bg-white">
-            <div className="flex items-center justify-between gap-4 border-b border-stone-200 px-5 py-4">
+          <div className="mt-8 rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
+            <div className="flex items-center justify-between gap-4 border-b border-stone-200 px-5 py-4 dark:border-stone-800">
               <div>
-                <h2 className="text-sm font-semibold text-stone-900">Briefings recentes</h2>
-                <p className="text-xs text-stone-400">Últimos atendimentos recebidos</p>
+                <h2 className="text-sm font-semibold text-stone-900 dark:text-stone-50">Briefings recentes</h2>
+                <p className="text-xs text-stone-400 dark:text-stone-500">Últimos atendimentos recebidos</p>
               </div>
-              <button onClick={onSeeAll} className="rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-600 transition-colors hover:bg-stone-50">
+              <button onClick={onSeeAll} className="rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-600 transition-colors hover:bg-stone-50 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800">
                 Ver todos
               </button>
             </div>

@@ -12,20 +12,20 @@ export const tourSteps = [
 export default function GuidedTourCard({ step, total, titulo, texto, onNext, onPrev, onClose }) {
   return (
     <div className="fixed bottom-6 left-1/2 z-40 w-[calc(100%-2rem)] max-w-md -translate-x-1/2">
-      <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-xl">
+      <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-xl dark:border-stone-800 dark:bg-stone-900">
         <div className="mb-2 flex items-center justify-between">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-1 text-[11px] font-medium text-rose-700">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-1 text-[11px] font-medium text-rose-700 dark:bg-rose-950/50 dark:text-rose-300">
             <Compass className="h-3 w-3" />
             Tour guiado · {step + 1} de {total}
           </span>
-          <button onClick={onClose} className="text-stone-400 hover:text-stone-600">
+          <button onClick={onClose} className="text-stone-400 hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300">
             <X className="h-4 w-4" />
           </button>
         </div>
-        <h3 className="text-sm font-semibold text-stone-900">{titulo}</h3>
-        <p className="mt-1 text-sm text-stone-500">{texto}</p>
+        <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-50">{titulo}</h3>
+        <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">{texto}</p>
         <div className="mt-4 flex items-center justify-between">
-          <button onClick={onPrev} disabled={step === 0} className="rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-600 transition-colors hover:bg-stone-50 disabled:opacity-40">
+          <button onClick={onPrev} disabled={step === 0} className="rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-600 transition-colors hover:bg-stone-50 disabled:opacity-40 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800">
             Anterior
           </button>
           <button onClick={onNext} className="rounded-lg bg-rose-600 px-3.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-rose-700">

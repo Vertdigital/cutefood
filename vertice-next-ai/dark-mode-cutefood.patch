@@ -1,0 +1,1462 @@
+diff --git a/vertice-next-ai/src/App.jsx b/vertice-next-ai/src/App.jsx
+index abf5ead..d68de35 100644
+--- a/vertice-next-ai/src/App.jsx
++++ b/vertice-next-ai/src/App.jsx
+@@ -17,7 +17,7 @@ import PipelinePage from "./pages/Pipeline";
+ import AnalyticsPage from "./pages/Analytics";
+ import SettingsPage from "./pages/Settings";
+ 
+-// O botão "Popular com dados de exemplo" e os dados que ele grava só existem
++// O botão "Popular com dados de teste" e os dados que ele grava só existem
+ // em ambiente de desenvolvimento (`npm run dev`). Numa build de produção
+ // (`npm run build`), `import.meta.env.DEV` é `false` e este import nem é
+ // incluído no bundle final graças ao tree-shaking do Vite.
+@@ -61,7 +61,7 @@ export default function VerticeNextAI() {
+   const selected = useMemo(() => briefings.find((b) => b.id === selectedId), [briefings, selectedId]);
+   const selectedCliente = useMemo(() => clientes.find((c) => c.nome === selectedClienteNome), [clientes, selectedClienteNome]);
+ 
+-  const entrarNaDemonstracao = useCallback(() => {
++  const entrarNoSistema = useCallback(() => {
+     setFase("loading");
+     setTimeout(() => setFase("app"), 900);
+   }, []);
+@@ -123,7 +123,7 @@ export default function VerticeNextAI() {
+       }
+     } catch (error) {
+       // eslint-disable-next-line no-console
+-      console.error("[Vértice Next AI] Falha ao popular dados de exemplo via n8n:", error);
++      console.error("[Vértice Next AI] Falha ao popular dados de teste via n8n:", error);
+       setErrorBriefings(error);
+     } finally {
+       setSeeding(false);
+@@ -158,7 +158,7 @@ export default function VerticeNextAI() {
+     else handleNavigate(alvo.page);
+   }, [tourStep, briefings, handleSelect, handleNavigate]);
+ 
+-  if (fase === "landing") return <LandingPage onEntrar={entrarNaDemonstracao} />;
++  if (fase === "landing") return <LandingPage onEntrar={entrarNoSistema} />;
+   if (fase === "loading") return <LoadingScreen />;
+   if (page === "notfound") return <NotFoundPage onVoltar={() => handleNavigate("dashboard")} />;
+   if (page === "maintenance") return <MaintenancePage onVoltar={() => handleNavigate("dashboard")} />;
+@@ -206,7 +206,7 @@ export default function VerticeNextAI() {
+   const sidebarPage = page === "detail" ? detailOrigin : page === "clienteDetail" ? "clientes" : page;
+ 
+   return (
+-    <div className="flex min-h-screen bg-stone-50">
++    <div className="flex min-h-screen bg-stone-50 dark:bg-stone-950">
+       <Sidebar page={sidebarPage} onNavigate={handleNavigate} />
+       <div className="flex flex-1 flex-col">
+         <Header
+@@ -214,8 +214,8 @@ export default function VerticeNextAI() {
+           confeiteira="Confeiteira CuteFood"
+           onNovoAtendimento={() => setSimulationOpen(true)}
+           onIniciarTour={iniciarTour}
+-          onDemoNotFound={() => setPage("notfound")}
+-          onDemoMaintenance={() => setPage("maintenance")}
++          onVerPagina404={() => setPage("notfound")}
++          onVerModoManutencao={() => setPage("maintenance")}
+         />
+         <main className="flex-1 overflow-y-auto px-4 py-6 pb-28 sm:px-8 sm:py-8">
+           <div className="mx-auto max-w-6xl">{content}</div>
+diff --git a/vertice-next-ai/src/components/BriefingsTable.jsx b/vertice-next-ai/src/components/BriefingsTable.jsx
+index 0c8f4ab..acc8c01 100644
+--- a/vertice-next-ai/src/components/BriefingsTable.jsx
++++ b/vertice-next-ai/src/components/BriefingsTable.jsx
+@@ -12,7 +12,7 @@ export default function BriefingsTable({ items, onSelect, loading }) {
+     <div className="overflow-x-auto">
+       <table className="w-full text-left text-sm">
+         <thead>
+-          <tr className="text-xs text-stone-400">
++          <tr className="text-xs text-stone-400 dark:text-stone-500">
+             <th className="px-5 py-3 font-medium">Cliente</th>
+             <th className="px-5 py-3 font-medium">Evento</th>
+             <th className="px-5 py-3 font-medium">Data</th>
+@@ -23,17 +23,17 @@ export default function BriefingsTable({ items, onSelect, loading }) {
+         </thead>
+         <tbody>
+           {items.map((b) => (
+-            <tr key={b.id} className="border-t border-stone-100 transition-colors hover:bg-stone-50/60">
++            <tr key={b.id} className="border-t border-stone-100 transition-colors hover:bg-stone-50/60 dark:border-stone-800 dark:hover:bg-stone-800/40">
+               <td className="px-5 py-3.5">
+                 <div className="flex items-center gap-2.5">
+-                  <span className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold ${b.avatarBg || "bg-stone-100"} ${b.avatarText || "text-stone-600"}`}>
++                  <span className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold ${b.avatarBg || "bg-stone-100 dark:bg-stone-800"} ${b.avatarText || "text-stone-600 dark:text-stone-300"}`}>
+                     {initials(b.cliente)}
+                   </span>
+-                  <span className="font-medium text-stone-800">{b.cliente}</span>
++                  <span className="font-medium text-stone-800 dark:text-stone-200">{b.cliente}</span>
+                 </div>
+               </td>
+-              <td className="px-5 py-3.5 text-stone-600">{b.evento}</td>
+-              <td className="px-5 py-3.5 text-stone-600">{formatDataCurta(b.data)}</td>
++              <td className="px-5 py-3.5 text-stone-600 dark:text-stone-400">{b.evento}</td>
++              <td className="px-5 py-3.5 text-stone-600 dark:text-stone-400">{formatDataCurta(b.data)}</td>
+               <td className="px-5 py-3.5">
+                 <StatusPill status={b.status} />
+               </td>
+@@ -43,7 +43,7 @@ export default function BriefingsTable({ items, onSelect, loading }) {
+               <td className="px-5 py-3.5 text-right">
+                 <button
+                   onClick={() => onSelect(b.id)}
+-                  className="rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-700 transition-colors hover:border-stone-300 hover:bg-stone-50"
++                  className="rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-700 transition-colors hover:border-stone-300 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-300 dark:hover:border-stone-600 dark:hover:bg-stone-800"
+                 >
+                   Visualizar
+                 </button>
+diff --git a/vertice-next-ai/src/components/GuidedTour.jsx b/vertice-next-ai/src/components/GuidedTour.jsx
+index da3ca5c..1731552 100644
+--- a/vertice-next-ai/src/components/GuidedTour.jsx
++++ b/vertice-next-ai/src/components/GuidedTour.jsx
+@@ -12,20 +12,20 @@ export const tourSteps = [
+ export default function GuidedTourCard({ step, total, titulo, texto, onNext, onPrev, onClose }) {
+   return (
+     <div className="fixed bottom-6 left-1/2 z-40 w-[calc(100%-2rem)] max-w-md -translate-x-1/2">
+-      <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-xl">
++      <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-xl dark:border-stone-800 dark:bg-stone-900">
+         <div className="mb-2 flex items-center justify-between">
+-          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-1 text-[11px] font-medium text-rose-700">
++          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-1 text-[11px] font-medium text-rose-700 dark:bg-rose-950/50 dark:text-rose-300">
+             <Compass className="h-3 w-3" />
+             Tour guiado · {step + 1} de {total}
+           </span>
+-          <button onClick={onClose} className="text-stone-400 hover:text-stone-600">
++          <button onClick={onClose} className="text-stone-400 hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300">
+             <X className="h-4 w-4" />
+           </button>
+         </div>
+-        <h3 className="text-sm font-semibold text-stone-900">{titulo}</h3>
+-        <p className="mt-1 text-sm text-stone-500">{texto}</p>
++        <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-50">{titulo}</h3>
++        <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">{texto}</p>
+         <div className="mt-4 flex items-center justify-between">
+-          <button onClick={onPrev} disabled={step === 0} className="rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-600 transition-colors hover:bg-stone-50 disabled:opacity-40">
++          <button onClick={onPrev} disabled={step === 0} className="rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-600 transition-colors hover:bg-stone-50 disabled:opacity-40 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800">
+             Anterior
+           </button>
+           <button onClick={onNext} className="rounded-lg bg-rose-600 px-3.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-rose-700">
+diff --git a/vertice-next-ai/src/components/Header.jsx b/vertice-next-ai/src/components/Header.jsx
+index 737019d..40ed548 100644
+--- a/vertice-next-ai/src/components/Header.jsx
++++ b/vertice-next-ai/src/components/Header.jsx
+@@ -2,6 +2,7 @@ import { useState } from "react";
+ import { Play, Plus, Bell, ChevronDown } from "lucide-react";
+ import { initials } from "../lib/derive";
+ import { Tooltip } from "./ui";
++import ThemeToggle from "./ThemeToggle";
+ 
+ const PAGE_TITLES = {
+   dashboard: "Dashboard",
+@@ -15,7 +16,7 @@ const PAGE_TITLES = {
+   analytics: "Analytics",
+ };
+ 
+-export default function Header({ page, confeiteira, onNovoAtendimento, onIniciarTour, onDemoNotFound, onDemoMaintenance }) {
++export default function Header({ page, confeiteira, onNovoAtendimento, onIniciarTour, onVerPagina404, onVerModoManutencao }) {
+   const [notifOpen, setNotifOpen] = useState(false);
+   const [menuOpen, setMenuOpen] = useState(false);
+ 
+@@ -28,12 +29,12 @@ export default function Header({ page, confeiteira, onNovoAtendimento, onIniciar
+   ];
+ 
+   return (
+-    <header className="flex items-center justify-between border-b border-stone-200 bg-white px-4 py-4 sm:px-8">
+-      <p className="text-sm font-medium text-stone-400">{PAGE_TITLES[page] || "Vértice Next AI"}</p>
++    <header className="flex items-center justify-between border-b border-stone-200 bg-white px-4 py-4 sm:px-8 dark:border-stone-800 dark:bg-stone-900">
++      <p className="text-sm font-medium text-stone-400 dark:text-stone-500">{PAGE_TITLES[page] || "Vértice Next AI"}</p>
+ 
+       <div className="flex items-center gap-2 sm:gap-3">
+         <Tooltip text="Iniciar tour guiado">
+-          <button onClick={onIniciarTour} className="flex items-center gap-2 rounded-lg border border-stone-200 px-3 py-2 text-xs font-medium text-stone-600 transition-colors hover:bg-stone-50">
++          <button onClick={onIniciarTour} className="flex items-center gap-2 rounded-lg border border-stone-200 px-3 py-2 text-xs font-medium text-stone-600 transition-colors hover:bg-stone-50 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800">
+             <Play className="h-3.5 w-3.5" />
+             <span className="hidden sm:inline">Tour guiado</span>
+           </button>
+@@ -44,20 +45,22 @@ export default function Header({ page, confeiteira, onNovoAtendimento, onIniciar
+           <span className="hidden sm:inline">Novo atendimento</span>
+         </button>
+ 
++        <ThemeToggle />
++
+         <div className="relative">
+           <Tooltip text="Notificações">
+-            <button onClick={() => setNotifOpen((v) => !v)} className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 text-stone-500 transition-colors hover:bg-stone-50">
++            <button onClick={() => setNotifOpen((v) => !v)} className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 text-stone-500 transition-colors hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800">
+               <Bell className="h-4 w-4" />
+               <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-rose-600" />
+             </button>
+           </Tooltip>
+           {notifOpen && (
+-            <div className="absolute right-0 z-20 mt-2 w-72 rounded-xl border border-stone-200 bg-white p-2 shadow-lg">
+-              <p className="px-2 py-1.5 text-xs font-semibold text-stone-500">Notificações</p>
++            <div className="absolute right-0 z-20 mt-2 w-72 rounded-xl border border-stone-200 bg-white p-2 shadow-lg dark:border-stone-700 dark:bg-stone-900">
++              <p className="px-2 py-1.5 text-xs font-semibold text-stone-500 dark:text-stone-400">Notificações</p>
+               {notificacoes.map((n, i) => (
+-                <div key={i} className="rounded-lg px-2 py-2 hover:bg-stone-50">
+-                  <p className="text-xs text-stone-700">{n.texto}</p>
+-                  <p className="text-[11px] text-stone-400">{n.tempo}</p>
++                <div key={i} className="rounded-lg px-2 py-2 hover:bg-stone-50 dark:hover:bg-stone-800">
++                  <p className="text-xs text-stone-700 dark:text-stone-300">{n.texto}</p>
++                  <p className="text-[11px] text-stone-400 dark:text-stone-500">{n.tempo}</p>
+                 </div>
+               ))}
+             </div>
+@@ -65,21 +68,21 @@ export default function Header({ page, confeiteira, onNovoAtendimento, onIniciar
+         </div>
+ 
+         <div className="relative">
+-          <button onClick={() => setMenuOpen((v) => !v)} className="flex items-center gap-2 rounded-lg border border-stone-200 py-1.5 pl-1.5 pr-2.5 transition-colors hover:bg-stone-50">
+-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-stone-200 text-xs font-semibold text-stone-600">{initials(confeiteira)}</span>
+-            <span className="hidden text-xs font-medium text-stone-700 sm:inline">{confeiteira}</span>
+-            <ChevronDown className="h-3.5 w-3.5 text-stone-400" />
++          <button onClick={() => setMenuOpen((v) => !v)} className="flex items-center gap-2 rounded-lg border border-stone-200 py-1.5 pl-1.5 pr-2.5 transition-colors hover:bg-stone-50 dark:border-stone-700 dark:hover:bg-stone-800">
++            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-stone-200 text-xs font-semibold text-stone-600 dark:bg-stone-700 dark:text-stone-300">{initials(confeiteira)}</span>
++            <span className="hidden text-xs font-medium text-stone-700 sm:inline dark:text-stone-300">{confeiteira}</span>
++            <ChevronDown className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
+           </button>
+           {menuOpen && (
+-            <div className="absolute right-0 z-20 mt-2 w-52 rounded-xl border border-stone-200 bg-white p-1.5 shadow-lg">
+-              <button className="w-full rounded-lg px-3 py-2 text-left text-xs text-stone-600 hover:bg-stone-50">Meu perfil</button>
+-              <button className="w-full rounded-lg px-3 py-2 text-left text-xs text-stone-600 hover:bg-stone-50">Sair</button>
+-              <div className="my-1 border-t border-stone-100" />
+-              <button onClick={onDemoNotFound} className="w-full rounded-lg px-3 py-2 text-left text-xs text-stone-500 hover:bg-stone-50">
+-                Ver página 404 (demo)
++            <div className="absolute right-0 z-20 mt-2 w-52 rounded-xl border border-stone-200 bg-white p-1.5 shadow-lg dark:border-stone-700 dark:bg-stone-900">
++              <button className="w-full rounded-lg px-3 py-2 text-left text-xs text-stone-600 hover:bg-stone-50 dark:text-stone-300 dark:hover:bg-stone-800">Meu perfil</button>
++              <button className="w-full rounded-lg px-3 py-2 text-left text-xs text-stone-600 hover:bg-stone-50 dark:text-stone-300 dark:hover:bg-stone-800">Sair</button>
++              <div className="my-1 border-t border-stone-100 dark:border-stone-800" />
++              <button onClick={onVerPagina404} className="w-full rounded-lg px-3 py-2 text-left text-xs text-stone-500 hover:bg-stone-50 dark:text-stone-400 dark:hover:bg-stone-800">
++                Ver página 404
+               </button>
+-              <button onClick={onDemoMaintenance} className="w-full rounded-lg px-3 py-2 text-left text-xs text-stone-500 hover:bg-stone-50">
+-                Ver modo manutenção (demo)
++              <button onClick={onVerModoManutencao} className="w-full rounded-lg px-3 py-2 text-left text-xs text-stone-500 hover:bg-stone-50 dark:text-stone-400 dark:hover:bg-stone-800">
++                Ver modo manutenção
+               </button>
+             </div>
+           )}
+diff --git a/vertice-next-ai/src/components/Sidebar.jsx b/vertice-next-ai/src/components/Sidebar.jsx
+index abeb078..a00f881 100644
+--- a/vertice-next-ai/src/components/Sidebar.jsx
++++ b/vertice-next-ai/src/components/Sidebar.jsx
+@@ -13,14 +13,14 @@ const NAV_ITEMS = [
+ 
+ export default function Sidebar({ page, onNavigate }) {
+   return (
+-    <aside className="flex w-16 flex-none flex-col border-r border-stone-200 bg-white transition-all lg:w-64">
++    <aside className="flex w-16 flex-none flex-col border-r border-stone-200 bg-white transition-all lg:w-64 dark:border-stone-800 dark:bg-stone-900">
+       <div className="flex items-center gap-2.5 px-4 py-5 lg:px-5">
+         <span className="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-rose-600 text-white">
+           <Sparkles className="h-4 w-4" />
+         </span>
+         <div className="hidden lg:block">
+-          <p className="text-sm font-semibold text-stone-900">Vértice Next AI</p>
+-          <p className="text-[11px] text-stone-400">Piloto: CuteFood CWB</p>
++          <p className="text-sm font-semibold text-stone-900 dark:text-stone-50">Vértice Next AI</p>
++          <p className="text-[11px] text-stone-400 dark:text-stone-500">Piloto: CuteFood CWB</p>
+         </div>
+       </div>
+ 
+@@ -33,7 +33,7 @@ export default function Sidebar({ page, onNavigate }) {
+               <button
+                 onClick={() => onNavigate(item.key)}
+                 className={`flex w-full items-center justify-center gap-2.5 rounded-lg px-2 py-2 text-sm font-medium transition-colors lg:justify-start lg:px-3 ${
+-                  active ? "bg-rose-50 text-rose-700" : "text-stone-600 hover:bg-stone-50"
++                  active ? "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300" : "text-stone-600 hover:bg-stone-50 dark:text-stone-400 dark:hover:bg-stone-800"
+                 }`}
+               >
+                 <Icon className="h-4 w-4 flex-none" />
+diff --git a/vertice-next-ai/src/components/SimulationModal.jsx b/vertice-next-ai/src/components/SimulationModal.jsx
+index 73c0b6c..95bbbd3 100644
+--- a/vertice-next-ai/src/components/SimulationModal.jsx
++++ b/vertice-next-ai/src/components/SimulationModal.jsx
+@@ -5,9 +5,9 @@ import { avatarPalette } from "../lib/derive";
+ import { formatDataCompleta } from "../utils/date";
+ 
+ // Roteiro de uma simulação de atendimento via WhatsApp. Isso NÃO é dado do
+-// sistema — é o texto de uma demonstração guiada. O único dado real que sai
+-// daqui é o objeto gravado no Firestore quando a confeiteira clica em
+-// "Concluir e criar briefing".
++// sistema — é o texto fixo usado para conduzir a simulação guiada. O único
++// dado real que sai daqui é o objeto gravado no Firestore quando a
++// confeiteira clica em "Concluir e criar briefing".
+ const simulationScript = [
+   { autor: "cliente", texto: "Oi, boa tarde!" },
+   { autor: "ia", texto: "Boa tarde! Seja bem-vinda 💛 Pra qual ocasião seria o bolo?" },
+@@ -87,15 +87,15 @@ export default function SimulationModal({ onClose, onConcluir }) {
+   };
+ 
+   return (
+-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-stone-900/40 px-4">
+-      <div className="flex h-[85vh] w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-xl">
+-        <div className="flex w-full flex-col border-r border-stone-200 sm:w-1/2">
+-          <div className="flex items-center justify-between border-b border-stone-200 px-5 py-4">
++    <div className="fixed inset-0 z-30 flex items-center justify-center bg-stone-900/40 px-4 dark:bg-black/60">
++      <div className="flex h-[85vh] w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-stone-900">
++        <div className="flex w-full flex-col border-r border-stone-200 sm:w-1/2 dark:border-stone-800">
++          <div className="flex items-center justify-between border-b border-stone-200 px-5 py-4 dark:border-stone-800">
+             <div className="flex items-center gap-2">
+-              <MessageCircle className="h-4 w-4 text-stone-400" />
+-              <p className="text-sm font-semibold text-stone-900">Simulação de atendimento</p>
++              <MessageCircle className="h-4 w-4 text-stone-400 dark:text-stone-500" />
++              <p className="text-sm font-semibold text-stone-900 dark:text-stone-50">Simulação de atendimento</p>
+             </div>
+-            <button onClick={onClose} className="text-stone-400 hover:text-stone-600">
++            <button onClick={onClose} className="text-stone-400 hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300">
+               <X className="h-4 w-4" />
+             </button>
+           </div>
+@@ -103,14 +103,14 @@ export default function SimulationModal({ onClose, onConcluir }) {
+           <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
+             {visiveis.map((m, i) => (
+               <div key={i} className={`flex ${m.autor === "cliente" ? "justify-end" : "justify-start"}`}>
+-                <div className={`max-w-[80%] rounded-2xl px-3.5 py-2 text-sm ${m.autor === "cliente" ? "bg-rose-600 text-white" : "bg-stone-100 text-stone-700"}`}>{m.texto}</div>
++                <div className={`max-w-[80%] rounded-2xl px-3.5 py-2 text-sm ${m.autor === "cliente" ? "bg-rose-600 text-white" : "bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300"}`}>{m.texto}</div>
+               </div>
+             ))}
+           </div>
+ 
+-          <div className="border-t border-stone-200 p-4">
++          <div className="border-t border-stone-200 p-4 dark:border-stone-800">
+             {erro && (
+-              <div className="mb-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
++              <div className="mb-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300">
+                 {erro}
+               </div>
+             )}
+@@ -132,10 +132,10 @@ export default function SimulationModal({ onClose, onConcluir }) {
+           </div>
+         </div>
+ 
+-        <div className="hidden w-1/2 flex-col bg-stone-50 sm:flex">
+-          <div className="border-b border-stone-200 px-5 py-4">
+-            <p className="text-sm font-semibold text-stone-900">Briefing sendo preenchido</p>
+-            <p className="text-xs text-stone-400">Ao concluir, este objeto é enviado ao Webhook do n8n, que valida e grava no Firestore</p>
++        <div className="hidden w-1/2 flex-col bg-stone-50 sm:flex dark:bg-stone-950/60">
++          <div className="border-b border-stone-200 px-5 py-4 dark:border-stone-800">
++            <p className="text-sm font-semibold text-stone-900 dark:text-stone-50">Briefing sendo preenchido</p>
++            <p className="text-xs text-stone-400 dark:text-stone-500">Ao concluir, este objeto é enviado ao Webhook do n8n, que valida e grava no Firestore</p>
+           </div>
+           <div className="flex-1 space-y-1 overflow-y-auto px-3 py-3">
+             <InfoRow icon={Sparkles} label="Evento" value={liveBriefing.evento} highlight={!!liveBriefing.evento} />
+diff --git a/vertice-next-ai/src/components/ThemeToggle.jsx b/vertice-next-ai/src/components/ThemeToggle.jsx
+new file mode 100644
+index 0000000..4cf300a
+--- /dev/null
++++ b/vertice-next-ai/src/components/ThemeToggle.jsx
+@@ -0,0 +1,19 @@
++import { Sun, Moon } from "lucide-react";
++import { useTheme } from "../context/ThemeProvider";
++import { Tooltip } from "./ui";
++
++export default function ThemeToggle() {
++  const { isDark, toggleTheme } = useTheme();
++
++  return (
++    <Tooltip text={isDark ? "Mudar para modo claro" : "Mudar para modo escuro"}>
++      <button
++        onClick={toggleTheme}
++        aria-label={isDark ? "Ativar modo claro" : "Ativar modo escuro"}
++        className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 text-stone-500 transition-colors hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800"
++      >
++        {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
++      </button>
++    </Tooltip>
++  );
++}
+diff --git a/vertice-next-ai/src/components/ui.jsx b/vertice-next-ai/src/components/ui.jsx
+index 9bc019c..159a67e 100644
+--- a/vertice-next-ai/src/components/ui.jsx
++++ b/vertice-next-ai/src/components/ui.jsx
+@@ -6,7 +6,7 @@ export function Tooltip({ text, children }) {
+   return (
+     <span className="group relative inline-flex">
+       {children}
+-      <span className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-stone-900 px-2 py-1 text-[11px] text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100">
++      <span className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-stone-900 px-2 py-1 text-[11px] text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100 dark:bg-stone-700">
+         {text}
+       </span>
+     </span>
+@@ -14,7 +14,7 @@ export function Tooltip({ text, children }) {
+ }
+ 
+ export function Skeleton({ className }) {
+-  return <div className={`animate-pulse rounded-lg bg-stone-200 ${className}`} />;
++  return <div className={`animate-pulse rounded-lg bg-stone-200 dark:bg-stone-800 ${className}`} />;
+ }
+ 
+ export function TableSkeleton() {
+@@ -30,11 +30,11 @@ export function TableSkeleton() {
+ export function EmptyState({ icon: Icon, title, description, action }) {
+   return (
+     <div className="flex flex-col items-center justify-center gap-2 px-6 py-16 text-center">
+-      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-stone-100 text-stone-400">
++      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-stone-100 text-stone-400 dark:bg-stone-800 dark:text-stone-500">
+         <Icon className="h-5 w-5" />
+       </span>
+-      <p className="text-sm font-medium text-stone-700">{title}</p>
+-      {description && <p className="max-w-xs text-xs text-stone-400">{description}</p>}
++      <p className="text-sm font-medium text-stone-700 dark:text-stone-300">{title}</p>
++      {description && <p className="max-w-xs text-xs text-stone-400 dark:text-stone-500">{description}</p>}
+       {action && <div className="mt-3">{action}</div>}
+     </div>
+   );
+@@ -54,7 +54,7 @@ export function StatusPill({ status }) {
+ export function ComplexidadeTag({ nivel }) {
+   return (
+     <Tooltip text={`Complexidade ${(nivel || "").toLowerCase()} da solicitação`}>
+-      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-stone-600">
++      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-stone-600 dark:text-stone-400">
+         <span className={`h-1.5 w-1.5 rounded-full ${complexidadeDot[nivel]}`} />
+         {nivel}
+       </span>
+@@ -64,14 +64,14 @@ export function ComplexidadeTag({ nivel }) {
+ 
+ export function MetricCard({ icon: Icon, label, value, tint }) {
+   return (
+-    <div className="rounded-2xl border border-stone-200 bg-white p-5 transition-shadow hover:shadow-sm">
++    <div className="rounded-2xl border border-stone-200 bg-white p-5 transition-shadow hover:shadow-sm dark:border-stone-800 dark:bg-stone-900 dark:hover:shadow-none">
+       <div className="flex items-center justify-between">
+-        <span className="text-sm font-medium text-stone-500">{label}</span>
++        <span className="text-sm font-medium text-stone-500 dark:text-stone-400">{label}</span>
+         <span className={`flex h-8 w-8 items-center justify-center rounded-full ${tint}`}>
+           <Icon className="h-4 w-4" />
+         </span>
+       </div>
+-      <p className="mt-3 text-3xl font-semibold tracking-tight text-stone-900">{value}</p>
++      <p className="mt-3 text-3xl font-semibold tracking-tight text-stone-900 dark:text-stone-50">{value}</p>
+     </div>
+   );
+ }
+@@ -79,30 +79,30 @@ export function MetricCard({ icon: Icon, label, value, tint }) {
+ export function PageHeader({ title, subtitle }) {
+   return (
+     <div className="mb-6">
+-      <h1 className="text-2xl font-semibold tracking-tight text-stone-900">{title}</h1>
+-      {subtitle && <p className="mt-1 text-sm text-stone-500">{subtitle}</p>}
++      <h1 className="text-2xl font-semibold tracking-tight text-stone-900 dark:text-stone-50">{title}</h1>
++      {subtitle && <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">{subtitle}</p>}
+     </div>
+   );
+ }
+ 
+ export function InfoRow({ icon: Icon, label, value, highlight }) {
+   return (
+-    <div className={`flex items-start gap-3 rounded-lg px-2 py-3 transition-colors ${highlight ? "bg-rose-50/60" : ""}`}>
+-      <span className="mt-0.5 flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-stone-100 text-stone-500">
++    <div className={`flex items-start gap-3 rounded-lg px-2 py-3 transition-colors ${highlight ? "bg-rose-50/60 dark:bg-rose-950/20" : ""}`}>
++      <span className="mt-0.5 flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-stone-100 text-stone-500 dark:bg-stone-800 dark:text-stone-400">
+         <Icon className="h-4 w-4" />
+       </span>
+       <div>
+-        <p className="text-xs font-medium text-stone-400">{label}</p>
+-        <p className="text-sm text-stone-800">{value || "—"}</p>
++        <p className="text-xs font-medium text-stone-400 dark:text-stone-500">{label}</p>
++        <p className="text-sm text-stone-800 dark:text-stone-200">{value || "—"}</p>
+       </div>
+     </div>
+   );
+ }
+ 
+ /**
+- * Botão de popular dados de exemplo — o próprio App.jsx só passa a prop
+- * `onSeed` para as páginas quando `import.meta.env.DEV` é verdadeiro, então
+- * este componente nunca é renderizado numa build de produção.
++ * Botão para popular o Firestore com dados de teste — o próprio App.jsx só
++ * passa a prop `onSeed` para as páginas quando `import.meta.env.DEV` é
++ * verdadeiro, então este componente nunca é renderizado numa build de produção.
+  */
+ export function SeedButton({ onSeed, seeding }) {
+   return (
+@@ -112,14 +112,14 @@ export function SeedButton({ onSeed, seeding }) {
+       className="flex items-center gap-2 rounded-lg bg-rose-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-rose-700 disabled:opacity-60"
+     >
+       {seeding ? <Loader2 className="h-4 w-4 animate-spin" /> : <DatabaseZap className="h-4 w-4" />}
+-      {seeding ? "Populando Firestore…" : "Popular com dados de exemplo (dev)"}
++      {seeding ? "Populando Firestore…" : "Popular com dados de teste (dev)"}
+     </button>
+   );
+ }
+ 
+ export function Toggle({ checked, onChange }) {
+   return (
+-    <button onClick={() => onChange(!checked)} className={`relative h-6 w-11 flex-none rounded-full transition-colors ${checked ? "bg-rose-600" : "bg-stone-200"}`}>
++    <button onClick={() => onChange(!checked)} className={`relative h-6 w-11 flex-none rounded-full transition-colors ${checked ? "bg-rose-600" : "bg-stone-200 dark:bg-stone-700"}`}>
+       <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${checked ? "translate-x-5" : "translate-x-0.5"}`} />
+     </button>
+   );
+@@ -127,9 +127,9 @@ export function Toggle({ checked, onChange }) {
+ 
+ export function FieldCard({ label, description, children }) {
+   return (
+-    <div className="border-b border-stone-100 py-5 first:pt-0 last:border-0">
+-      <p className="text-sm font-medium text-stone-800">{label}</p>
+-      {description && <p className="mb-3 mt-0.5 text-xs text-stone-400">{description}</p>}
++    <div className="border-b border-stone-100 py-5 first:pt-0 last:border-0 dark:border-stone-800">
++      <p className="text-sm font-medium text-stone-800 dark:text-stone-200">{label}</p>
++      {description && <p className="mb-3 mt-0.5 text-xs text-stone-400 dark:text-stone-500">{description}</p>}
+       {!description && <div className="mt-3" />}
+       {children}
+     </div>
+@@ -150,8 +150,8 @@ export function EditableList({ items, onChange, placeholder }) {
+     <div className="space-y-2">
+       {items.map((item, idx) => (
+         <div key={idx} className="flex items-center gap-2">
+-          <input value={item} onChange={(e) => updateItem(idx, e.target.value)} className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 outline-none focus:border-rose-300" />
+-          <button onClick={() => removeItem(idx)} className="flex h-8 w-8 flex-none items-center justify-center rounded-lg border border-stone-200 text-stone-400 transition-colors hover:bg-stone-50 hover:text-rose-600">
++          <input value={item} onChange={(e) => updateItem(idx, e.target.value)} className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 outline-none focus:border-rose-300 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:focus:border-rose-600" />
++          <button onClick={() => removeItem(idx)} className="flex h-8 w-8 flex-none items-center justify-center rounded-lg border border-stone-200 text-stone-400 transition-colors hover:bg-stone-50 hover:text-rose-600 dark:border-stone-700 dark:text-stone-500 dark:hover:bg-stone-800">
+             <X className="h-3.5 w-3.5" />
+           </button>
+         </div>
+@@ -162,9 +162,9 @@ export function EditableList({ items, onChange, placeholder }) {
+           onChange={(e) => setDraft(e.target.value)}
+           onKeyDown={(e) => e.key === "Enter" && addItem()}
+           placeholder={placeholder}
+-          className="w-full rounded-lg border border-dashed border-stone-300 px-3 py-2 text-sm text-stone-700 placeholder-stone-400 outline-none focus:border-rose-300"
++          className="w-full rounded-lg border border-dashed border-stone-300 px-3 py-2 text-sm text-stone-700 placeholder-stone-400 outline-none focus:border-rose-300 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:placeholder-stone-500 dark:focus:border-rose-600"
+         />
+-        <button onClick={addItem} className="flex h-8 w-8 flex-none items-center justify-center rounded-lg border border-stone-200 text-stone-500 transition-colors hover:bg-stone-50 hover:text-rose-600">
++        <button onClick={addItem} className="flex h-8 w-8 flex-none items-center justify-center rounded-lg border border-stone-200 text-stone-500 transition-colors hover:bg-stone-50 hover:text-rose-600 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800">
+           <Plus className="h-3.5 w-3.5" />
+         </button>
+       </div>
+diff --git a/vertice-next-ai/src/context/ThemeProvider.jsx b/vertice-next-ai/src/context/ThemeProvider.jsx
+new file mode 100644
+index 0000000..b1f2560
+--- /dev/null
++++ b/vertice-next-ai/src/context/ThemeProvider.jsx
+@@ -0,0 +1,77 @@
++import { createContext, useContext, useEffect, useMemo, useState, useCallback } from "react";
++
++const ThemeContext = createContext(null);
++const STORAGE_KEY = "vertice-next-ai:theme";
++
++/** Lê a preferência salva no localStorage, se houver. */
++function getPreferenciaSalva() {
++  if (typeof window === "undefined") return null;
++  try {
++    const salvo = window.localStorage.getItem(STORAGE_KEY);
++    return salvo === "dark" || salvo === "light" ? salvo : null;
++  } catch {
++    // localStorage indisponível (modo privado, restrições do navegador, etc.)
++    return null;
++  }
++}
++
++/** Detecta o tema do sistema operacional via media query. */
++function getPreferenciaSistema() {
++  if (typeof window === "undefined" || !window.matchMedia) return "light";
++  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
++}
++
++function aplicarClasseNoHtml(theme) {
++  const root = window.document.documentElement;
++  root.classList.toggle("dark", theme === "dark");
++  root.style.colorScheme = theme;
++}
++
++/**
++ * Provedor de tema (claro/escuro) para toda a aplicação.
++ *
++ * Ordem de resolução do tema inicial:
++ * 1. Preferência já salva pelo usuário no localStorage (alternância manual).
++ * 2. Se nunca alternou manualmente, o tema do sistema operacional na primeira visita.
++ * 3. Caso nada esteja disponível, "light" como padrão seguro.
++ */
++export function ThemeProvider({ children }) {
++  const [theme, setTheme] = useState(() => getPreferenciaSalva() || getPreferenciaSistema());
++
++  // Aplica a classe `dark` no <html> sempre que o tema mudar.
++  useEffect(() => {
++    aplicarClasseNoHtml(theme);
++  }, [theme]);
++
++  // Se o usuário nunca escolheu manualmente um tema, acompanha mudanças do
++  // sistema operacional em tempo real (ex.: agendamento de modo escuro do SO).
++  useEffect(() => {
++    if (getPreferenciaSalva()) return undefined;
++    const media = window.matchMedia("(prefers-color-scheme: dark)");
++    const handleChange = (e) => setTheme(e.matches ? "dark" : "light");
++    media.addEventListener("change", handleChange);
++    return () => media.removeEventListener("change", handleChange);
++  }, []);
++
++  const toggleTheme = useCallback(() => {
++    setTheme((atual) => {
++      const proximo = atual === "dark" ? "light" : "dark";
++      try {
++        window.localStorage.setItem(STORAGE_KEY, proximo);
++      } catch {
++        // Se não for possível persistir, a alternância ainda funciona na sessão atual.
++      }
++      return proximo;
++    });
++  }, []);
++
++  const value = useMemo(() => ({ theme, toggleTheme, isDark: theme === "dark" }), [theme, toggleTheme]);
++
++  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
++}
++
++export function useTheme() {
++  const context = useContext(ThemeContext);
++  if (!context) throw new Error("useTheme precisa ser usado dentro de um ThemeProvider");
++  return context;
++}
+diff --git a/vertice-next-ai/src/index.css b/vertice-next-ai/src/index.css
+index f1d8c73..c202092 100644
+--- a/vertice-next-ai/src/index.css
++++ b/vertice-next-ai/src/index.css
+@@ -1 +1,6 @@
+ @import "tailwindcss";
++
++/* Ativa a variante `dark:` baseada na classe `.dark` no elemento <html>,
++   controlada pelo ThemeProvider (em vez do padrão `prefers-color-scheme`
++   do Tailwind, que não permite alternância manual persistida). */
++@custom-variant dark (&:where(.dark, .dark *));
+diff --git a/vertice-next-ai/src/lib/derive.js b/vertice-next-ai/src/lib/derive.js
+index 364669f..bb9a314 100644
+--- a/vertice-next-ai/src/lib/derive.js
++++ b/vertice-next-ai/src/lib/derive.js
+@@ -1,17 +1,17 @@
+ // Constantes visuais e funções puras derivadas exclusivamente de `briefings`
+-// (o array vindo do Firestore). Nenhum dado de exemplo/mock vive aqui —
+-// apenas estilos de UI e transformações de dados reais.
++// (o array vindo do Firestore). Este arquivo não guarda nenhum dado próprio —
++// apenas estilos de UI e transformações sobre os dados reais recebidos.
+ 
+ import { Inbox, Loader2, Clock3, CheckCircle2, PackageCheck } from "lucide-react";
+ import { formatDataCompleta } from "../utils/date";
+ 
+ export const statusStyles = {
+-  "Novo": { icon: Inbox, badge: "bg-stone-100 text-stone-600" },
+-  "Briefing": { icon: Loader2, badge: "bg-sky-50 text-sky-700" },
+-  "Orçamento": { icon: Clock3, badge: "bg-amber-50 text-amber-700" },
+-  "Aprovado": { icon: CheckCircle2, badge: "bg-violet-50 text-violet-700" },
+-  "Produção": { icon: Loader2, badge: "bg-indigo-50 text-indigo-700" },
+-  "Finalizado": { icon: PackageCheck, badge: "bg-emerald-50 text-emerald-700" },
++  "Novo": { icon: Inbox, badge: "bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-300" },
++  "Briefing": { icon: Loader2, badge: "bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300" },
++  "Orçamento": { icon: Clock3, badge: "bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300" },
++  "Aprovado": { icon: CheckCircle2, badge: "bg-violet-50 text-violet-700 dark:bg-violet-950/50 dark:text-violet-300" },
++  "Produção": { icon: Loader2, badge: "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300" },
++  "Finalizado": { icon: PackageCheck, badge: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300" },
+ };
+ 
+ export const pipelineColumns = [
+@@ -26,19 +26,19 @@ export const pipelineColumns = [
+ export const complexidadeDot = { "Simples": "bg-emerald-500", "Média": "bg-amber-500", "Alta": "bg-rose-500" };
+ 
+ export const avatarPalette = [
+-  { bg: "bg-rose-100", text: "text-rose-700" },
+-  { bg: "bg-amber-100", text: "text-amber-700" },
+-  { bg: "bg-emerald-100", text: "text-emerald-700" },
+-  { bg: "bg-sky-100", text: "text-sky-700" },
+-  { bg: "bg-violet-100", text: "text-violet-700" },
++  { bg: "bg-rose-100 dark:bg-rose-950/50", text: "text-rose-700 dark:text-rose-300" },
++  { bg: "bg-amber-100 dark:bg-amber-950/50", text: "text-amber-700 dark:text-amber-300" },
++  { bg: "bg-emerald-100 dark:bg-emerald-950/50", text: "text-emerald-700 dark:text-emerald-300" },
++  { bg: "bg-sky-100 dark:bg-sky-950/50", text: "text-sky-700 dark:text-sky-300" },
++  { bg: "bg-violet-100 dark:bg-violet-950/50", text: "text-violet-700 dark:text-violet-300" },
+ ];
+ 
+ export const clienteStatusStyles = {
+-  "Ativo": "bg-emerald-50 text-emerald-700",
+-  "Novo": "bg-sky-50 text-sky-700",
+-  "Em negociação": "bg-amber-50 text-amber-700",
+-  "Fiel": "bg-violet-50 text-violet-700",
+-  "Inativo": "bg-stone-100 text-stone-500",
++  "Ativo": "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300",
++  "Novo": "bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300",
++  "Em negociação": "bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300",
++  "Fiel": "bg-violet-50 text-violet-700 dark:bg-violet-950/50 dark:text-violet-300",
++  "Inativo": "bg-stone-100 text-stone-500 dark:bg-stone-800 dark:text-stone-400",
+ };
+ 
+ export function initials(name) {
+diff --git a/vertice-next-ai/src/main.jsx b/vertice-next-ai/src/main.jsx
+index b9a1a6d..3d9d5f6 100644
+--- a/vertice-next-ai/src/main.jsx
++++ b/vertice-next-ai/src/main.jsx
+@@ -2,9 +2,12 @@ import { StrictMode } from 'react'
+ import { createRoot } from 'react-dom/client'
+ import './index.css'
+ import App from './App.jsx'
++import { ThemeProvider } from './context/ThemeProvider.jsx'
+ 
+ createRoot(document.getElementById('root')).render(
+   <StrictMode>
+-    <App />
++    <ThemeProvider>
++      <App />
++    </ThemeProvider>
+   </StrictMode>,
+ )
+diff --git a/vertice-next-ai/src/pages/Agenda.jsx b/vertice-next-ai/src/pages/Agenda.jsx
+index f9b3e5b..b272924 100644
+--- a/vertice-next-ai/src/pages/Agenda.jsx
++++ b/vertice-next-ai/src/pages/Agenda.jsx
+@@ -38,12 +38,12 @@ export default function AgendaPage({ briefings, loading, onSelect }) {
+     <div>
+       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+         <PageHeader title="Agenda" subtitle="Pedidos organizados por data, lidos do Firestore." />
+-        <div className="flex items-center gap-2 rounded-lg border border-stone-200 bg-white p-1">
++        <div className="flex items-center gap-2 rounded-lg border border-stone-200 bg-white p-1 dark:border-stone-800 dark:bg-stone-900">
+           {["mensal", "semanal"].map((v) => (
+             <button
+               key={v}
+               onClick={() => setVisao(v)}
+-              className={`rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-colors ${visao === v ? "bg-rose-600 text-white" : "text-stone-500 hover:bg-stone-50"}`}
++              className={`rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-colors ${visao === v ? "bg-rose-600 text-white" : "text-stone-500 hover:bg-stone-50 dark:text-stone-400 dark:hover:bg-stone-800"}`}
+             >
+               {v}
+             </button>
+@@ -51,34 +51,34 @@ export default function AgendaPage({ briefings, loading, onSelect }) {
+         </div>
+       </div>
+ 
+-      <div className="rounded-2xl border border-stone-200 bg-white p-5">
++      <div className="rounded-2xl border border-stone-200 bg-white p-5 dark:border-stone-800 dark:bg-stone-900">
+         {loading ? (
+           <Skeleton className="h-80" />
+         ) : (
+           <>
+             <div className="mb-4 flex items-center justify-between">
+-              <button onClick={() => trocarMes(-1)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-stone-200 text-stone-500 hover:bg-stone-50">
++              <button onClick={() => trocarMes(-1)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-stone-200 text-stone-500 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800">
+                 <ChevronLeft className="h-4 w-4" />
+               </button>
+-              <p className="text-sm font-semibold text-stone-900">{info.label}</p>
+-              <button onClick={() => trocarMes(1)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-stone-200 text-stone-500 hover:bg-stone-50">
++              <p className="text-sm font-semibold text-stone-900 dark:text-stone-50">{info.label}</p>
++              <button onClick={() => trocarMes(1)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-stone-200 text-stone-500 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800">
+                 <ChevronRight className="h-4 w-4" />
+               </button>
+             </div>
+ 
+             {visao === "mensal" ? (
+               <div>
+-                <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[11px] font-medium text-stone-400">
++                <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[11px] font-medium text-stone-400 dark:text-stone-500">
+                   {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((d) => (
+                     <div key={d}>{d}</div>
+                   ))}
+                 </div>
+                 <div className="grid grid-cols-7 gap-1">
+                   {celulas.map((d, i) => (
+-                    <div key={i} className={`min-h-[72px] rounded-lg border p-1.5 text-xs ${d ? "border-stone-100 hover:border-stone-200" : "border-transparent"}`}>
++                    <div key={i} className={`min-h-[72px] rounded-lg border p-1.5 text-xs ${d ? "border-stone-100 hover:border-stone-200 dark:border-stone-800 dark:hover:border-stone-700" : "border-transparent"}`}>
+                       {d && (
+                         <>
+-                          <p className="mb-1 text-stone-400">{d}</p>
++                          <p className="mb-1 text-stone-400 dark:text-stone-500">{d}</p>
+                           <div className="space-y-1">
+                             {(porDia[d] || []).map((b) => (
+                               <Tooltip key={b.id} text={`${b.cliente} — ${b.status}`}>
+@@ -101,12 +101,12 @@ export default function AgendaPage({ briefings, loading, onSelect }) {
+             ) : (
+               <div className="grid grid-cols-1 gap-2 sm:grid-cols-7">
+                 {semana.map((d) => (
+-                  <div key={d} className="rounded-lg border border-stone-100 p-2">
+-                    <p className="mb-2 text-xs font-medium text-stone-400">
++                  <div key={d} className="rounded-lg border border-stone-100 p-2 dark:border-stone-800">
++                    <p className="mb-2 text-xs font-medium text-stone-400 dark:text-stone-500">
+                       {d} de {mesAtual}
+                     </p>
+                     <div className="space-y-1.5">
+-                      {(porDia[d] || []).length === 0 && <p className="text-[11px] text-stone-300">Sem pedidos</p>}
++                      {(porDia[d] || []).length === 0 && <p className="text-[11px] text-stone-300 dark:text-stone-600">Sem pedidos</p>}
+                       {(porDia[d] || []).map((b) => (
+                         <button
+                           key={b.id}
+diff --git a/vertice-next-ai/src/pages/Analytics.jsx b/vertice-next-ai/src/pages/Analytics.jsx
+index 8d396e1..1dd478d 100644
+--- a/vertice-next-ai/src/pages/Analytics.jsx
++++ b/vertice-next-ai/src/pages/Analytics.jsx
+@@ -2,6 +2,7 @@ import { Clock3, Send, CheckCircle2, PackageCheck, Wallet, DatabaseZap } from "l
+ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
+ import { deriveAnalytics } from "../lib/derive";
+ import { PageHeader, MetricCard, Skeleton, EmptyState } from "../components/ui";
++import { useTheme } from "../context/ThemeProvider";
+ 
+ // Histórico anterior à existência da coleção no Firestore — mantido apenas
+ // como referência de contexto no gráfico (claramente rotulado como tal).
+@@ -15,6 +16,12 @@ const HISTORICO_ANTERIOR = [
+ ];
+ 
+ export default function AnalyticsPage({ briefings, loading }) {
++  const { isDark } = useTheme();
++  const corGrade = isDark ? "#292524" : "#e7e5e4";
++  const corTexto = isDark ? "#a8a29e" : "#78716c";
++  const corFundoTooltip = isDark ? "#1c1917" : "#ffffff";
++  const corCursor = isDark ? "#292524" : "#fafaf9";
++
+   if (loading) {
+     return (
+       <div>
+@@ -34,7 +41,7 @@ export default function AnalyticsPage({ briefings, loading }) {
+     return (
+       <div>
+         <PageHeader title="Analytics" subtitle="Indicadores calculados ao vivo a partir dos briefings no Firestore." />
+-        <div className="rounded-2xl border border-stone-200 bg-white">
++        <div className="rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
+           <EmptyState icon={DatabaseZap} title="Ainda não há briefings para calcular indicadores" description="Assim que a coleção 'briefings' tiver dados, os indicadores aparecem aqui automaticamente." />
+         </div>
+       </div>
+@@ -48,23 +55,23 @@ export default function AnalyticsPage({ briefings, loading }) {
+     <div>
+       <PageHeader title="Analytics" subtitle="Indicadores calculados ao vivo a partir dos briefings no Firestore." />
+       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+-        <MetricCard icon={Clock3} label="Tempo médio de atendimento" value={metrics.tempoMedio} tint="bg-sky-50 text-sky-600" />
+-        <MetricCard icon={Send} label="Orçamentos enviados" value={metrics.orcamentosEnviados} tint="bg-amber-50 text-amber-600" />
+-        <MetricCard icon={CheckCircle2} label="Conversões" value={metrics.conversao} tint="bg-emerald-50 text-emerald-600" />
+-        <MetricCard icon={PackageCheck} label="Pedidos fechados" value={metrics.pedidosFechados} tint="bg-violet-50 text-violet-600" />
+-        <MetricCard icon={Wallet} label="Ticket médio" value={metrics.ticketMedio} tint="bg-rose-50 text-rose-600" />
++        <MetricCard icon={Clock3} label="Tempo médio de atendimento" value={metrics.tempoMedio} tint="bg-sky-50 text-sky-600 dark:bg-sky-950/50 dark:text-sky-400" />
++        <MetricCard icon={Send} label="Orçamentos enviados" value={metrics.orcamentosEnviados} tint="bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400" />
++        <MetricCard icon={CheckCircle2} label="Conversões" value={metrics.conversao} tint="bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400" />
++        <MetricCard icon={PackageCheck} label="Pedidos fechados" value={metrics.pedidosFechados} tint="bg-violet-50 text-violet-600 dark:bg-violet-950/50 dark:text-violet-400" />
++        <MetricCard icon={Wallet} label="Ticket médio" value={metrics.ticketMedio} tint="bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400" />
+       </div>
+ 
+-      <div className="mt-8 rounded-2xl border border-stone-200 bg-white p-6">
+-        <h2 className="mb-1 text-sm font-semibold text-stone-900">Evolução de pedidos</h2>
+-        <p className="mb-4 text-xs text-stone-400">Histórico de referência + total atual de briefings no Firestore</p>
++      <div className="mt-8 rounded-2xl border border-stone-200 bg-white p-6 dark:border-stone-800 dark:bg-stone-900">
++        <h2 className="mb-1 text-sm font-semibold text-stone-900 dark:text-stone-50">Evolução de pedidos</h2>
++        <p className="mb-4 text-xs text-stone-400 dark:text-stone-500">Histórico de referência + total atual de briefings no Firestore</p>
+         <div style={{ height: 260 }}>
+           <ResponsiveContainer width="100%" height="100%">
+             <BarChart data={evolucao}>
+-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e7e5e4" />
+-              <XAxis dataKey="mes" tick={{ fontSize: 12, fill: "#78716c" }} axisLine={false} tickLine={false} />
+-              <YAxis tick={{ fontSize: 12, fill: "#78716c" }} axisLine={false} tickLine={false} />
+-              <RechartsTooltip contentStyle={{ borderRadius: 8, border: "1px solid #e7e5e4", fontSize: 12 }} cursor={{ fill: "#fafaf9" }} />
++              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={corGrade} />
++              <XAxis dataKey="mes" tick={{ fontSize: 12, fill: corTexto }} axisLine={false} tickLine={false} />
++              <YAxis tick={{ fontSize: 12, fill: corTexto }} axisLine={false} tickLine={false} />
++              <RechartsTooltip contentStyle={{ borderRadius: 8, border: `1px solid ${corGrade}`, fontSize: 12, backgroundColor: corFundoTooltip, color: corTexto }} cursor={{ fill: corCursor }} />
+               <Bar dataKey="pedidos" fill="#e11d48" radius={[6, 6, 0, 0]} />
+             </BarChart>
+           </ResponsiveContainer>
+diff --git a/vertice-next-ai/src/pages/BriefingDetail.jsx b/vertice-next-ai/src/pages/BriefingDetail.jsx
+index a28f17a..00e4db0 100644
+--- a/vertice-next-ai/src/pages/BriefingDetail.jsx
++++ b/vertice-next-ai/src/pages/BriefingDetail.jsx
+@@ -29,11 +29,11 @@ function EditForm({ briefing, onSalvar, onCancelar, salvando }) {
+   const setCampo = (key, value) => setForm((f) => ({ ...f, [key]: value }));
+ 
+   return (
+-    <div className="rounded-2xl border border-stone-200 bg-white p-6">
++    <div className="rounded-2xl border border-stone-200 bg-white p-6 dark:border-stone-800 dark:bg-stone-900">
+       <div className="mb-4 flex items-center justify-between">
+-        <h2 className="text-sm font-semibold text-stone-900">Editando briefing</h2>
++        <h2 className="text-sm font-semibold text-stone-900 dark:text-stone-50">Editando briefing</h2>
+         <div className="flex items-center gap-2">
+-          <button onClick={onCancelar} className="flex items-center gap-1.5 rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-600 hover:bg-stone-50">
++          <button onClick={onCancelar} className="flex items-center gap-1.5 rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800">
+             <X className="h-3.5 w-3.5" />
+             Cancelar
+           </button>
+@@ -51,12 +51,12 @@ function EditForm({ briefing, onSalvar, onCancelar, salvando }) {
+       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+         {CAMPOS_EDITAVEIS.map((campo) => (
+           <div key={campo.key} className={campo.type === "textarea" ? "sm:col-span-2" : ""}>
+-            <label className="mb-1 block text-xs font-medium text-stone-500">{campo.label}</label>
++            <label className="mb-1 block text-xs font-medium text-stone-500 dark:text-stone-400">{campo.label}</label>
+             {campo.type === "select" ? (
+               <select
+                 value={form[campo.key]}
+                 onChange={(e) => setCampo(campo.key, e.target.value)}
+-                className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 outline-none focus:border-rose-300"
++                className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 outline-none focus:border-rose-300 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:focus:border-rose-600"
+               >
+                 {campo.options.map((o) => (
+                   <option key={o} value={o}>
+@@ -69,14 +69,14 @@ function EditForm({ briefing, onSalvar, onCancelar, salvando }) {
+                 value={form[campo.key]}
+                 onChange={(e) => setCampo(campo.key, e.target.value)}
+                 rows={3}
+-                className="w-full resize-none rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 outline-none focus:border-rose-300"
++                className="w-full resize-none rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 outline-none focus:border-rose-300 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:focus:border-rose-600"
+               />
+             ) : (
+               <input
+                 type={campo.type}
+                 value={form[campo.key]}
+                 onChange={(e) => setCampo(campo.key, e.target.value)}
+-                className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 outline-none focus:border-rose-300"
++                className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 outline-none focus:border-rose-300 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:focus:border-rose-600"
+               />
+             )}
+           </div>
+@@ -89,9 +89,9 @@ function EditForm({ briefing, onSalvar, onCancelar, salvando }) {
+ function MessageBubble({ autor, texto, hora }) {
+   return (
+     <div className={`flex ${autor === "cliente" ? "justify-end" : "justify-start"}`}>
+-      <div className={`max-w-[80%] rounded-2xl px-3.5 py-2 text-sm ${autor === "cliente" ? "bg-rose-600 text-white" : "bg-stone-100 text-stone-700"}`}>
++      <div className={`max-w-[80%] rounded-2xl px-3.5 py-2 text-sm ${autor === "cliente" ? "bg-rose-600 text-white" : "bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300"}`}>
+         <p>{texto}</p>
+-        {hora && <p className={`mt-1 text-[10px] ${autor === "cliente" ? "text-rose-100" : "text-stone-400"}`}>{hora}</p>}
++        {hora && <p className={`mt-1 text-[10px] ${autor === "cliente" ? "text-rose-100" : "text-stone-400 dark:text-stone-500"}`}>{hora}</p>}
+       </div>
+     </div>
+   );
+@@ -121,16 +121,16 @@ function TimelinePanel({ briefing }) {
+   const mensagens = briefing.conversationId ? mensagensFirestore : briefing.mensagens;
+ 
+   return (
+-    <div className="flex h-full flex-col rounded-2xl border border-stone-200 bg-white">
+-      <div className="flex items-center gap-2 border-b border-stone-200 px-5 py-4">
+-        <MessageCircle className="h-4 w-4 text-stone-400" />
+-        <h2 className="text-sm font-semibold text-stone-900">Timeline da conversa</h2>
+-        {briefing.conversationId && <span className="ml-auto text-[10px] font-medium text-stone-400">ao vivo · Firestore</span>}
++    <div className="flex h-full flex-col rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
++      <div className="flex items-center gap-2 border-b border-stone-200 px-5 py-4 dark:border-stone-800">
++        <MessageCircle className="h-4 w-4 text-stone-400 dark:text-stone-500" />
++        <h2 className="text-sm font-semibold text-stone-900 dark:text-stone-50">Timeline da conversa</h2>
++        {briefing.conversationId && <span className="ml-auto text-[10px] font-medium text-stone-400 dark:text-stone-500">ao vivo · Firestore</span>}
+       </div>
+       <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
+-        {erro && <p className="text-xs text-rose-600">Não foi possível carregar as mensagens desta conversa.</p>}
+-        {mensagens === null && !erro && <p className="text-xs text-stone-400">Carregando mensagens…</p>}
+-        {mensagens && mensagens.length === 0 && <p className="text-xs text-stone-400">Nenhuma mensagem registrada para este briefing.</p>}
++        {erro && <p className="text-xs text-rose-600 dark:text-rose-400">Não foi possível carregar as mensagens desta conversa.</p>}
++        {mensagens === null && !erro && <p className="text-xs text-stone-400 dark:text-stone-500">Carregando mensagens…</p>}
++        {mensagens && mensagens.length === 0 && <p className="text-xs text-stone-400 dark:text-stone-500">Nenhuma mensagem registrada para este briefing.</p>}
+         {mensagens && mensagens.map((m, i) => <MessageBubble key={m.id || i} autor={m.autor} texto={m.texto} hora={m.hora} />)}
+       </div>
+     </div>
+@@ -158,23 +158,23 @@ export default function BriefingDetailPage({ briefing, onBack, onDelete, onUpdat
+   return (
+     <div>
+       <div className="mb-6 flex items-center gap-4">
+-        <button onClick={onBack} className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 text-stone-500 transition-colors hover:bg-stone-50">
++        <button onClick={onBack} className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 text-stone-500 transition-colors hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800">
+           <ArrowLeft className="h-4 w-4" />
+         </button>
+         <div className="flex items-center gap-3">
+-          <span className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ${briefing.avatarBg || "bg-stone-100"} ${briefing.avatarText || "text-stone-600"}`}>
++          <span className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ${briefing.avatarBg || "bg-stone-100 dark:bg-stone-800"} ${briefing.avatarText || "text-stone-600 dark:text-stone-300"}`}>
+             {initials(briefing.cliente)}
+           </span>
+           <div>
+-            <p className="text-sm font-semibold text-stone-900">{briefing.cliente}</p>
+-            <p className="text-xs text-stone-400">{briefing.telefone}</p>
++            <p className="text-sm font-semibold text-stone-900 dark:text-stone-50">{briefing.cliente}</p>
++            <p className="text-xs text-stone-400 dark:text-stone-500">{briefing.telefone}</p>
+           </div>
+         </div>
+         <div className="ml-auto flex items-center gap-2">
+           <StatusPill status={briefing.status} />
+           {!editando && (
+             <Tooltip text="Editar este briefing">
+-              <button onClick={() => setEditando(true)} className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 text-stone-400 transition-colors hover:border-stone-300 hover:text-stone-600">
++              <button onClick={() => setEditando(true)} className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 text-stone-400 transition-colors hover:border-stone-300 hover:text-stone-600 dark:border-stone-700 dark:text-stone-500 dark:hover:border-stone-600 dark:hover:text-stone-300">
+                 <Pencil className="h-4 w-4" />
+               </button>
+             </Tooltip>
+@@ -183,18 +183,18 @@ export default function BriefingDetailPage({ briefing, onBack, onDelete, onUpdat
+             <Tooltip text="Excluir este briefing no Firestore">
+               <button
+                 onClick={() => setConfirmandoExclusao(true)}
+-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 text-stone-400 transition-colors hover:border-rose-200 hover:text-rose-600"
++                className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 text-stone-400 transition-colors hover:border-rose-200 hover:text-rose-600 dark:border-stone-700 dark:text-stone-500 dark:hover:border-rose-800 dark:hover:text-rose-400"
+               >
+                 <Trash2 className="h-4 w-4" />
+               </button>
+             </Tooltip>
+           ) : (
+-            <div className="flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-2 py-1.5">
+-              <span className="text-xs text-rose-700">Excluir de vez?</span>
++            <div className="flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-2 py-1.5 dark:border-rose-900 dark:bg-rose-950/40">
++              <span className="text-xs text-rose-700 dark:text-rose-300">Excluir de vez?</span>
+               <button onClick={handleExcluir} disabled={excluindo} className="rounded-md bg-rose-600 px-2 py-1 text-xs font-medium text-white hover:bg-rose-700">
+                 {excluindo ? "…" : "Sim"}
+               </button>
+-              <button onClick={() => setConfirmandoExclusao(false)} className="rounded-md border border-rose-200 px-2 py-1 text-xs text-rose-700">
++              <button onClick={() => setConfirmandoExclusao(false)} className="rounded-md border border-rose-200 px-2 py-1 text-xs text-rose-700 dark:border-rose-900 dark:text-rose-300">
+                 Não
+               </button>
+             </div>
+@@ -207,14 +207,14 @@ export default function BriefingDetailPage({ briefing, onBack, onDelete, onUpdat
+       ) : (
+         <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+           <section className="lg:col-span-3">
+-            <div className="rounded-2xl border border-stone-200 bg-white p-6">
++            <div className="rounded-2xl border border-stone-200 bg-white p-6 dark:border-stone-800 dark:bg-stone-900">
+               <div className="mb-1 flex items-center justify-between">
+-                <h2 className="text-sm font-semibold text-stone-900">Resumo do briefing</h2>
++                <h2 className="text-sm font-semibold text-stone-900 dark:text-stone-50">Resumo do briefing</h2>
+                 <ComplexidadeTag nivel={briefing.complexidade} />
+               </div>
+-              <p className="mb-2 text-xs text-stone-400">Documento da coleção `briefings` no Firestore</p>
++              <p className="mb-2 text-xs text-stone-400 dark:text-stone-500">Documento da coleção `briefings` no Firestore</p>
+ 
+-              <div className="divide-y divide-stone-100">
++              <div className="divide-y divide-stone-100 dark:divide-stone-800">
+                 <InfoRow icon={Phone} label="Telefone" value={briefing.telefone} />
+                 <InfoRow icon={Sparkles} label="Evento" value={briefing.evento} />
+                 <InfoRow icon={Sparkles} label="Tema" value={briefing.tema} />
+diff --git a/vertice-next-ai/src/pages/Briefings.jsx b/vertice-next-ai/src/pages/Briefings.jsx
+index c335fac..c854014 100644
+--- a/vertice-next-ai/src/pages/Briefings.jsx
++++ b/vertice-next-ai/src/pages/Briefings.jsx
+@@ -11,21 +11,21 @@ export default function BriefingsPage({ briefings, loading, onSelect, onSeed, se
+   return (
+     <div>
+       <PageHeader title="Briefings" subtitle="Todos os atendimentos conduzidos pela assistente, lidos em tempo real do Firestore." />
+-      <div className="rounded-2xl border border-stone-200 bg-white">
+-        <div className="flex flex-col gap-3 border-b border-stone-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+-          <p className="text-xs text-stone-400">{loading ? "Carregando…" : `${filtered.length} atendimentos`}</p>
++      <div className="rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
++        <div className="flex flex-col gap-3 border-b border-stone-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-stone-800">
++          <p className="text-xs text-stone-400 dark:text-stone-500">{loading ? "Carregando…" : `${filtered.length} atendimentos`}</p>
+           <div className="flex items-center gap-2">
+-            <div className="flex items-center gap-2 rounded-lg border border-stone-200 px-3 py-2">
+-              <Search className="h-3.5 w-3.5 text-stone-400" />
++            <div className="flex items-center gap-2 rounded-lg border border-stone-200 px-3 py-2 dark:border-stone-700">
++              <Search className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
+               <input
+                 value={query}
+                 onChange={(e) => setQuery(e.target.value)}
+                 placeholder="Buscar cliente ou evento"
+-                className="w-40 text-sm text-stone-700 placeholder-stone-400 outline-none sm:w-56"
++                className="w-40 text-sm text-stone-700 placeholder-stone-400 outline-none sm:w-56 dark:bg-transparent dark:text-stone-200 dark:placeholder-stone-500"
+               />
+             </div>
+             <Tooltip text="Filtrar por status ou complexidade">
+-              <button className="flex items-center gap-1.5 rounded-lg border border-stone-200 px-3 py-2 text-xs font-medium text-stone-600 transition-colors hover:bg-stone-50">
++              <button className="flex items-center gap-1.5 rounded-lg border border-stone-200 px-3 py-2 text-xs font-medium text-stone-600 transition-colors hover:bg-stone-50 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800">
+                 <SlidersHorizontal className="h-3.5 w-3.5" />
+                 Filtros
+               </button>
+@@ -36,7 +36,7 @@ export default function BriefingsPage({ briefings, loading, onSelect, onSeed, se
+           <EmptyState
+             icon={DatabaseZap}
+             title="Nenhum briefing no Firestore ainda"
+-            description={onSeed ? "Popule com dados de exemplo para começar." : "Aguarde novos atendimentos chegarem."}
++            description={onSeed ? "Popule com dados de teste para começar." : "Aguarde novos atendimentos chegarem."}
+             action={onSeed && <SeedButton onSeed={onSeed} seeding={seeding} />}
+           />
+         ) : (
+diff --git a/vertice-next-ai/src/pages/Clientes.jsx b/vertice-next-ai/src/pages/Clientes.jsx
+index de26c0e..f933063 100644
+--- a/vertice-next-ai/src/pages/Clientes.jsx
++++ b/vertice-next-ai/src/pages/Clientes.jsx
+@@ -18,15 +18,15 @@ export function ClientesPage({ clientes, loading, onVisualizar }) {
+   return (
+     <div>
+       <PageHeader title="Clientes" subtitle="Derivado automaticamente dos briefings salvos no Firestore." />
+-      <div className="rounded-2xl border border-stone-200 bg-white">
+-        <div className="flex flex-col gap-3 border-b border-stone-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+-          <p className="text-xs text-stone-400">{loading ? "Carregando…" : `${filtered.length} clientes`}</p>
++      <div className="rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
++        <div className="flex flex-col gap-3 border-b border-stone-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-stone-800">
++          <p className="text-xs text-stone-400 dark:text-stone-500">{loading ? "Carregando…" : `${filtered.length} clientes`}</p>
+           <div className="flex flex-wrap items-center gap-2">
+-            <div className="flex items-center gap-2 rounded-lg border border-stone-200 px-3 py-2">
+-              <Search className="h-3.5 w-3.5 text-stone-400" />
+-              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar cliente" className="w-36 text-sm text-stone-700 placeholder-stone-400 outline-none sm:w-48" />
++            <div className="flex items-center gap-2 rounded-lg border border-stone-200 px-3 py-2 dark:border-stone-700">
++              <Search className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
++              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar cliente" className="w-36 text-sm text-stone-700 placeholder-stone-400 outline-none sm:w-48 dark:bg-transparent dark:text-stone-200 dark:placeholder-stone-500" />
+             </div>
+-            <select value={filtro} onChange={(e) => setFiltro(e.target.value)} className="rounded-lg border border-stone-200 px-3 py-2 text-xs font-medium text-stone-600 outline-none">
++            <select value={filtro} onChange={(e) => setFiltro(e.target.value)} className="rounded-lg border border-stone-200 px-3 py-2 text-xs font-medium text-stone-600 outline-none dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300">
+               {statusOptions.map((s) => (
+                 <option key={s} value={s}>
+                   {s}
+@@ -44,7 +44,7 @@ export function ClientesPage({ clientes, loading, onVisualizar }) {
+           <div className="overflow-x-auto">
+             <table className="w-full text-left text-sm">
+               <thead>
+-                <tr className="text-xs text-stone-400">
++                <tr className="text-xs text-stone-400 dark:text-stone-500">
+                   <th className="px-5 py-3 font-medium">Cliente</th>
+                   <th className="px-5 py-3 font-medium">Pedidos</th>
+                   <th className="px-5 py-3 font-medium">Último atendimento</th>
+@@ -54,23 +54,23 @@ export function ClientesPage({ clientes, loading, onVisualizar }) {
+               </thead>
+               <tbody>
+                 {filtered.map((c) => (
+-                  <tr key={c.nome} className="border-t border-stone-100 transition-colors hover:bg-stone-50/60">
++                  <tr key={c.nome} className="border-t border-stone-100 transition-colors hover:bg-stone-50/60 dark:border-stone-800 dark:hover:bg-stone-800/40">
+                     <td className="px-5 py-3.5">
+                       <div className="flex items-center gap-2.5">
+-                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-stone-100 text-xs font-semibold text-stone-600">{initials(c.nome)}</span>
++                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-stone-100 text-xs font-semibold text-stone-600 dark:bg-stone-800 dark:text-stone-300">{initials(c.nome)}</span>
+                         <div>
+-                          <p className="font-medium text-stone-800">{c.nome}</p>
+-                          <p className="text-xs text-stone-400">{c.telefone}</p>
++                          <p className="font-medium text-stone-800 dark:text-stone-200">{c.nome}</p>
++                          <p className="text-xs text-stone-400 dark:text-stone-500">{c.telefone}</p>
+                         </div>
+                       </div>
+                     </td>
+-                    <td className="px-5 py-3.5 text-stone-600">{c.pedidos}</td>
+-                    <td className="px-5 py-3.5 text-stone-600">{c.ultimo}</td>
++                    <td className="px-5 py-3.5 text-stone-600 dark:text-stone-400">{c.pedidos}</td>
++                    <td className="px-5 py-3.5 text-stone-600 dark:text-stone-400">{c.ultimo}</td>
+                     <td className="px-5 py-3.5">
+                       <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${clienteStatusStyles[c.status]}`}>{c.status}</span>
+                     </td>
+                     <td className="px-5 py-3.5 text-right">
+-                      <button onClick={() => onVisualizar(c.nome)} className="rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-700 transition-colors hover:border-stone-300 hover:bg-stone-50">
++                      <button onClick={() => onVisualizar(c.nome)} className="rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-700 transition-colors hover:border-stone-300 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-300 dark:hover:border-stone-600 dark:hover:bg-stone-800">
+                         Visualizar
+                       </button>
+                     </td>
+@@ -90,27 +90,27 @@ export function ClienteDetailPage({ cliente, briefings, onBack, onSelectBriefing
+   return (
+     <div>
+       <div className="mb-6 flex items-center gap-4">
+-        <button onClick={onBack} className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 text-stone-500 transition-colors hover:bg-stone-50">
++        <button onClick={onBack} className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 text-stone-500 transition-colors hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800">
+           <ArrowLeft className="h-4 w-4" />
+         </button>
+         <div className="flex items-center gap-3">
+-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-stone-100 text-sm font-semibold text-stone-600">{initials(cliente.nome)}</span>
++          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-stone-100 text-sm font-semibold text-stone-600 dark:bg-stone-800 dark:text-stone-300">{initials(cliente.nome)}</span>
+           <div>
+-            <p className="text-sm font-semibold text-stone-900">{cliente.nome}</p>
+-            <p className="text-xs text-stone-400">{cliente.telefone}</p>
++            <p className="text-sm font-semibold text-stone-900 dark:text-stone-50">{cliente.nome}</p>
++            <p className="text-xs text-stone-400 dark:text-stone-500">{cliente.telefone}</p>
+           </div>
+         </div>
+         <span className={`ml-auto inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${clienteStatusStyles[cliente.status]}`}>{cliente.status}</span>
+       </div>
+ 
+       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+-        <MetricCard icon={PackageCheck} label="Pedidos realizados" value={cliente.pedidos} tint="bg-stone-100 text-stone-600" />
+-        <MetricCard icon={Clock3} label="Último atendimento" value={cliente.ultimo} tint="bg-amber-50 text-amber-600" />
++        <MetricCard icon={PackageCheck} label="Pedidos realizados" value={cliente.pedidos} tint="bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-300" />
++        <MetricCard icon={Clock3} label="Último atendimento" value={cliente.ultimo} tint="bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400" />
+       </div>
+ 
+-      <div className="mt-6 rounded-2xl border border-stone-200 bg-white">
+-        <div className="border-b border-stone-200 px-5 py-4">
+-          <h2 className="text-sm font-semibold text-stone-900">Briefings desta cliente</h2>
++      <div className="mt-6 rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
++        <div className="border-b border-stone-200 px-5 py-4 dark:border-stone-800">
++          <h2 className="text-sm font-semibold text-stone-900 dark:text-stone-50">Briefings desta cliente</h2>
+         </div>
+         <BriefingsTable items={briefingsDoCliente} onSelect={onSelectBriefing} loading={false} />
+       </div>
+diff --git a/vertice-next-ai/src/pages/Dashboard.jsx b/vertice-next-ai/src/pages/Dashboard.jsx
+index 830c787..ece377b 100644
+--- a/vertice-next-ai/src/pages/Dashboard.jsx
++++ b/vertice-next-ai/src/pages/Dashboard.jsx
+@@ -33,14 +33,14 @@ export default function DashboardPage({ briefings, loading, error, onSelect, onS
+       </div>
+ 
+       {semDados ? (
+-        <div className="rounded-2xl border border-stone-200 bg-white">
++        <div className="rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
+           <EmptyState
+             icon={DatabaseZap}
+             title="Sua coleção 'briefings' está vazia"
+             description={
+               onSeed
+-                ? "Popule com dados de exemplo para ver o Dashboard, o Pipeline e o Analytics funcionando com dados reais do Firestore."
+-                : "Aguarde a chegada de novos atendimentos — nenhum dado de exemplo é usado em produção."
++                ? "Popule com dados de teste para ver o Dashboard, o Pipeline e o Analytics funcionando com dados reais do Firestore."
++                : "Aguarde a chegada de novos atendimentos — nenhum dado de teste é usado em produção."
+             }
+             action={onSeed && <SeedButton onSeed={onSeed} seeding={seeding} />}
+           />
+@@ -55,20 +55,20 @@ export default function DashboardPage({ briefings, loading, error, onSelect, onS
+             </div>
+           ) : (
+             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+-              <MetricCard icon={Inbox} label="Briefings hoje" value={counts.hoje} tint="bg-stone-100 text-stone-600" />
+-              <MetricCard icon={Clock3} label="Aguardando orçamento" value={counts.aguardando} tint="bg-amber-50 text-amber-600" />
+-              <MetricCard icon={Loader2} label="Em atendimento" value={counts.emAtendimento} tint="bg-sky-50 text-sky-600" />
+-              <MetricCard icon={PackageCheck} label="Pedidos fechados" value={counts.fechados} tint="bg-emerald-50 text-emerald-600" />
++              <MetricCard icon={Inbox} label="Briefings hoje" value={counts.hoje} tint="bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-300" />
++              <MetricCard icon={Clock3} label="Aguardando orçamento" value={counts.aguardando} tint="bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400" />
++              <MetricCard icon={Loader2} label="Em atendimento" value={counts.emAtendimento} tint="bg-sky-50 text-sky-600 dark:bg-sky-950/50 dark:text-sky-400" />
++              <MetricCard icon={PackageCheck} label="Pedidos fechados" value={counts.fechados} tint="bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400" />
+             </div>
+           )}
+ 
+-          <div className="mt-8 rounded-2xl border border-stone-200 bg-white">
+-            <div className="flex items-center justify-between gap-4 border-b border-stone-200 px-5 py-4">
++          <div className="mt-8 rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
++            <div className="flex items-center justify-between gap-4 border-b border-stone-200 px-5 py-4 dark:border-stone-800">
+               <div>
+-                <h2 className="text-sm font-semibold text-stone-900">Briefings recentes</h2>
+-                <p className="text-xs text-stone-400">Últimos atendimentos recebidos</p>
++                <h2 className="text-sm font-semibold text-stone-900 dark:text-stone-50">Briefings recentes</h2>
++                <p className="text-xs text-stone-400 dark:text-stone-500">Últimos atendimentos recebidos</p>
+               </div>
+-              <button onClick={onSeeAll} className="rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-600 transition-colors hover:bg-stone-50">
++              <button onClick={onSeeAll} className="rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-600 transition-colors hover:bg-stone-50 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800">
+                 Ver todos
+               </button>
+             </div>
+diff --git a/vertice-next-ai/src/pages/Pipeline.jsx b/vertice-next-ai/src/pages/Pipeline.jsx
+index e1a7c43..adedb83 100644
+--- a/vertice-next-ai/src/pages/Pipeline.jsx
++++ b/vertice-next-ai/src/pages/Pipeline.jsx
+@@ -9,21 +9,21 @@ function PipelineCard({ card, onDragStart, onDragEnd, dragging }) {
+       draggable
+       onDragStart={(e) => onDragStart(e, card.id)}
+       onDragEnd={onDragEnd}
+-      className={`mb-2 cursor-grab rounded-xl border border-stone-200 bg-white p-3 shadow-sm transition-opacity active:cursor-grabbing ${dragging ? "opacity-40" : "opacity-100"}`}
++      className={`mb-2 cursor-grab rounded-xl border border-stone-200 bg-white p-3 shadow-sm transition-opacity active:cursor-grabbing dark:border-stone-800 dark:bg-stone-900 ${dragging ? "opacity-40" : "opacity-100"}`}
+     >
+       <div className="mb-2 flex items-start justify-between gap-2">
+         <div className="flex items-center gap-2">
+           <span className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-semibold ${card.avatarBg} ${card.avatarText}`}>{initials(card.cliente)}</span>
+           <div>
+-            <p className="text-xs font-medium text-stone-800">{card.cliente}</p>
+-            <p className="text-[11px] text-stone-400">{card.evento}</p>
++            <p className="text-xs font-medium text-stone-800 dark:text-stone-200">{card.cliente}</p>
++            <p className="text-[11px] text-stone-400 dark:text-stone-500">{card.evento}</p>
+           </div>
+         </div>
+         <Tooltip text="Arraste para mover">
+-          <GripVertical className="h-3.5 w-3.5 flex-none text-stone-300" />
++          <GripVertical className="h-3.5 w-3.5 flex-none text-stone-300 dark:text-stone-600" />
+         </Tooltip>
+       </div>
+-      <p className="text-xs font-medium text-stone-600">{card.valor}</p>
++      <p className="text-xs font-medium text-stone-600 dark:text-stone-400">{card.valor}</p>
+     </div>
+   );
+ }
+@@ -71,16 +71,16 @@ export default function PipelinePage({ briefings, loading, onMoveStatus }) {
+               }}
+               onDragLeave={() => setOverColuna(null)}
+               onDrop={(e) => handleDrop(e, col.key)}
+-              className={`min-h-[16rem] rounded-2xl border p-2.5 transition-colors ${overColuna === col.key ? "border-rose-300 bg-rose-50/40" : "border-stone-200 bg-stone-50/60"}`}
++              className={`min-h-[16rem] rounded-2xl border p-2.5 transition-colors ${overColuna === col.key ? "border-rose-300 bg-rose-50/40 dark:border-rose-800 dark:bg-rose-950/20" : "border-stone-200 bg-stone-50/60 dark:border-stone-800 dark:bg-stone-900/60"}`}
+             >
+               <div className="mb-2 flex items-center gap-1.5 px-1">
+                 <span className={`h-2 w-2 rounded-full ${col.dot}`} />
+-                <p className="text-xs font-semibold text-stone-700">{col.key}</p>
+-                <span className="ml-auto text-[11px] text-stone-400">{itens.length}</span>
++                <p className="text-xs font-semibold text-stone-700 dark:text-stone-300">{col.key}</p>
++                <span className="ml-auto text-[11px] text-stone-400 dark:text-stone-500">{itens.length}</span>
+               </div>
+ 
+               {itens.length === 0 ? (
+-                <div className="flex h-24 items-center justify-center rounded-xl border border-dashed border-stone-200 text-center text-[11px] text-stone-300">Arraste um card para cá</div>
++                <div className="flex h-24 items-center justify-center rounded-xl border border-dashed border-stone-200 text-center text-[11px] text-stone-300 dark:border-stone-700 dark:text-stone-600">Arraste um card para cá</div>
+               ) : (
+                 itens.map((card) => (
+                   <PipelineCard
+diff --git a/vertice-next-ai/src/pages/Settings.jsx b/vertice-next-ai/src/pages/Settings.jsx
+index 0474156..7e2b03f 100644
+--- a/vertice-next-ai/src/pages/Settings.jsx
++++ b/vertice-next-ai/src/pages/Settings.jsx
+@@ -25,32 +25,32 @@ export default function SettingsPage() {
+       <PageHeader title="Configurações da assistente" subtitle="Ajuste como a assistente se comunica com as suas clientes." />
+       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+         <div className="space-y-6 lg:col-span-2">
+-          <div className="rounded-2xl border border-stone-200 bg-white p-6">
+-            <h2 className="mb-1 text-sm font-semibold text-stone-900">Identidade</h2>
+-            <p className="mb-2 text-xs text-stone-400">Como a assistente se apresenta às clientes</p>
++          <div className="rounded-2xl border border-stone-200 bg-white p-6 dark:border-stone-800 dark:bg-stone-900">
++            <h2 className="mb-1 text-sm font-semibold text-stone-900 dark:text-stone-50">Identidade</h2>
++            <p className="mb-2 text-xs text-stone-400 dark:text-stone-500">Como a assistente se apresenta às clientes</p>
+             <FieldCard label="Nome da assistente">
+-              <input value={nome} onChange={(e) => setNome(e.target.value)} className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 outline-none focus:border-rose-300" />
++              <input value={nome} onChange={(e) => setNome(e.target.value)} className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 outline-none focus:border-rose-300 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:focus:border-rose-600" />
+             </FieldCard>
+             <FieldCard label="Mensagem de boas-vindas" description="Enviada assim que a cliente inicia a conversa">
+               <textarea
+                 value={boasVindas}
+                 onChange={(e) => setBoasVindas(e.target.value)}
+                 rows={3}
+-                className="w-full resize-none rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 outline-none focus:border-rose-300"
++                className="w-full resize-none rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 outline-none focus:border-rose-300 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:focus:border-rose-600"
+               />
+             </FieldCard>
+             <FieldCard label="Horário de atendimento" description="Janela em que a assistente conduz novos atendimentos">
+               <div className="flex items-center gap-3">
+-                <input type="time" value={horarioInicio} onChange={(e) => setHorarioInicio(e.target.value)} className="rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 outline-none focus:border-rose-300" />
+-                <span className="text-sm text-stone-400">até</span>
+-                <input type="time" value={horarioFim} onChange={(e) => setHorarioFim(e.target.value)} className="rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 outline-none focus:border-rose-300" />
++                <input type="time" value={horarioInicio} onChange={(e) => setHorarioInicio(e.target.value)} className="rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 outline-none focus:border-rose-300 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:focus:border-rose-600" />
++                <span className="text-sm text-stone-400 dark:text-stone-500">até</span>
++                <input type="time" value={horarioFim} onChange={(e) => setHorarioFim(e.target.value)} className="rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 outline-none focus:border-rose-300 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:focus:border-rose-600" />
+               </div>
+             </FieldCard>
+           </div>
+ 
+-          <div className="rounded-2xl border border-stone-200 bg-white p-6">
+-            <h2 className="mb-1 text-sm font-semibold text-stone-900">Perguntas do briefing</h2>
+-            <p className="mb-2 text-xs text-stone-400">O que a assistente deve perguntar durante o atendimento</p>
++          <div className="rounded-2xl border border-stone-200 bg-white p-6 dark:border-stone-800 dark:bg-stone-900">
++            <h2 className="mb-1 text-sm font-semibold text-stone-900 dark:text-stone-50">Perguntas do briefing</h2>
++            <p className="mb-2 text-xs text-stone-400 dark:text-stone-500">O que a assistente deve perguntar durante o atendimento</p>
+             <FieldCard label="Perguntas obrigatórias" description="Sempre coletadas antes de encerrar o briefing">
+               <EditableList items={obrigatorias} onChange={setObrigatorias} placeholder="Adicionar pergunta obrigatória" />
+             </FieldCard>
+@@ -59,25 +59,25 @@ export default function SettingsPage() {
+             </FieldCard>
+           </div>
+ 
+-          <div className="rounded-2xl border border-stone-200 bg-white p-6">
+-            <h2 className="mb-1 text-sm font-semibold text-stone-900">Mensagens de exceção</h2>
+-            <p className="mb-2 text-xs text-stone-400">Respostas padrão para situações fora do fluxo comum</p>
++          <div className="rounded-2xl border border-stone-200 bg-white p-6 dark:border-stone-800 dark:bg-stone-900">
++            <h2 className="mb-1 text-sm font-semibold text-stone-900 dark:text-stone-50">Mensagens de exceção</h2>
++            <p className="mb-2 text-xs text-stone-400 dark:text-stone-500">Respostas padrão para situações fora do fluxo comum</p>
+             <FieldCard label="Quando não souber responder">
+-              <textarea value={msgNaoSei} onChange={(e) => setMsgNaoSei(e.target.value)} rows={2} className="w-full resize-none rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 outline-none focus:border-rose-300" />
++              <textarea value={msgNaoSei} onChange={(e) => setMsgNaoSei(e.target.value)} rows={2} className="w-full resize-none rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 outline-none focus:border-rose-300 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:focus:border-rose-600" />
+             </FieldCard>
+             <FieldCard label="Encaminhamento para a confeiteira" description="Enviada ao concluir o resumo do briefing">
+-              <textarea value={msgEncaminhamento} onChange={(e) => setMsgEncaminhamento(e.target.value)} rows={2} className="w-full resize-none rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 outline-none focus:border-rose-300" />
++              <textarea value={msgEncaminhamento} onChange={(e) => setMsgEncaminhamento(e.target.value)} rows={2} className="w-full resize-none rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-700 outline-none focus:border-rose-300 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:focus:border-rose-600" />
+             </FieldCard>
+           </div>
+         </div>
+ 
+         <div className="space-y-6">
+-          <div className="rounded-2xl border border-stone-200 bg-white p-6">
+-            <h2 className="mb-3 text-sm font-semibold text-stone-900">Tom de voz</h2>
++          <div className="rounded-2xl border border-stone-200 bg-white p-6 dark:border-stone-800 dark:bg-stone-900">
++            <h2 className="mb-3 text-sm font-semibold text-stone-900 dark:text-stone-50">Tom de voz</h2>
+             <FieldCard label="Emojis" description="Permitir o uso pontual de emojis nas mensagens">
+               <div className="flex items-center gap-3">
+                 <Toggle checked={emojisAtivos} onChange={setEmojisAtivos} />
+-                <span className="flex items-center gap-1.5 text-sm text-stone-600">
++                <span className="flex items-center gap-1.5 text-sm text-stone-600 dark:text-stone-400">
+                   <Smile className="h-3.5 w-3.5" />
+                   {emojisAtivos ? "Ativados" : "Desativados"}
+                 </span>
+@@ -89,7 +89,7 @@ export default function SettingsPage() {
+                   <button
+                     key={opcao}
+                     onClick={() => setTom(opcao)}
+-                    className={`rounded-lg border px-3 py-2 text-left text-sm font-medium transition-colors ${tom === opcao ? "border-rose-300 bg-rose-50 text-rose-700" : "border-stone-200 text-stone-600 hover:bg-stone-50"}`}
++                    className={`rounded-lg border px-3 py-2 text-left text-sm font-medium transition-colors ${tom === opcao ? "border-rose-300 bg-rose-50 text-rose-700 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-300" : "border-stone-200 text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800"}`}
+                   >
+                     <span className="flex items-center justify-between">
+                       {opcao}
+@@ -101,13 +101,13 @@ export default function SettingsPage() {
+             </FieldCard>
+           </div>
+ 
+-          <div className="rounded-2xl border border-stone-200 bg-white p-6">
+-            <p className="mb-4 text-xs text-stone-400">Estas configurações ainda não são persistidas no Firestore — apenas o cadastro de briefings foi migrado nesta etapa.</p>
++          <div className="rounded-2xl border border-stone-200 bg-white p-6 dark:border-stone-800 dark:bg-stone-900">
++            <p className="mb-4 text-xs text-stone-400 dark:text-stone-500">Estas configurações ainda não são persistidas no Firestore — apenas o cadastro de briefings foi migrado nesta etapa.</p>
+             <button onClick={handleSalvar} className="w-full rounded-lg bg-rose-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-rose-700">
+               Salvar configuração
+             </button>
+             {salvo && (
+-              <div className="mt-3 flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">
++              <div className="mt-3 flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
+                 <CheckCircle2 className="h-3.5 w-3.5" />
+                 Configuração salva com sucesso
+               </div>
+diff --git a/vertice-next-ai/src/pages/SystemPages.jsx b/vertice-next-ai/src/pages/SystemPages.jsx
+index 9ed605a..45ff30e 100644
+--- a/vertice-next-ai/src/pages/SystemPages.jsx
++++ b/vertice-next-ai/src/pages/SystemPages.jsx
+@@ -2,23 +2,23 @@ import { Sparkles, ArrowRight, Loader2, Compass, Wrench } from "lucide-react";
+ 
+ export function LandingPage({ onEntrar }) {
+   return (
+-    <div className="flex min-h-screen items-center justify-center bg-stone-50 px-4">
+-      <div className="w-full max-w-md rounded-3xl border border-stone-200 bg-white p-10 text-center shadow-sm">
++    <div className="flex min-h-screen items-center justify-center bg-stone-50 px-4 dark:bg-stone-950">
++      <div className="w-full max-w-md rounded-3xl border border-stone-200 bg-white p-10 text-center shadow-sm dark:border-stone-800 dark:bg-stone-900">
+         <span className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-600 text-white">
+           <Sparkles className="h-7 w-7" />
+         </span>
+-        <h1 className="text-xl font-semibold tracking-tight text-stone-900">Vértice Next AI</h1>
+-        <p className="mt-2 text-sm text-stone-500">A plataforma de atendimento inteligente da Vértice, conectada ao Firestore em tempo real.</p>
+-        <span className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 text-xs font-medium text-rose-700">Projeto Piloto: CuteFood CWB</span>
++        <h1 className="text-xl font-semibold tracking-tight text-stone-900 dark:text-stone-50">Vértice Next AI</h1>
++        <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">A plataforma de atendimento inteligente da Vértice, conectada ao Firestore em tempo real.</p>
++        <span className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 text-xs font-medium text-rose-700 dark:bg-rose-950/50 dark:text-rose-300">Projeto Piloto: CuteFood CWB</span>
+ 
+         <button
+           onClick={onEntrar}
+           className="mt-7 flex w-full items-center justify-center gap-2 rounded-lg bg-rose-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-rose-700"
+         >
+-          Entrar na Demonstração
++          Entrar no sistema
+           <ArrowRight className="h-4 w-4" />
+         </button>
+-        <p className="mt-4 text-[11px] text-stone-400">Os dados exibidos vêm do Firestore configurado em .env.</p>
++        <p className="mt-4 text-[11px] text-stone-400 dark:text-stone-500">Os dados exibidos vêm do Firestore configurado em .env.</p>
+       </div>
+     </div>
+   );
+@@ -26,11 +26,11 @@ export function LandingPage({ onEntrar }) {
+ 
+ export function LoadingScreen() {
+   return (
+-    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-stone-50">
++    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-stone-50 dark:bg-stone-950">
+       <span className="flex h-12 w-12 animate-pulse items-center justify-center rounded-2xl bg-rose-600 text-white">
+         <Sparkles className="h-6 w-6" />
+       </span>
+-      <div className="flex items-center gap-2 text-sm text-stone-500">
++      <div className="flex items-center gap-2 text-sm text-stone-500 dark:text-stone-400">
+         <Loader2 className="h-4 w-4 animate-spin" />
+         Conectando ao Firestore…
+       </div>
+@@ -40,14 +40,14 @@ export function LoadingScreen() {
+ 
+ export function NotFoundPage({ onVoltar }) {
+   return (
+-    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-stone-50 px-4 text-center">
+-      <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-stone-200 text-stone-500">
++    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-stone-50 px-4 text-center dark:bg-stone-950">
++      <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-stone-200 text-stone-500 dark:bg-stone-800 dark:text-stone-400">
+         <Compass className="h-7 w-7" />
+       </span>
+       <div>
+-        <p className="text-sm font-semibold text-stone-400">Erro 404</p>
+-        <h1 className="mt-1 text-xl font-semibold text-stone-900">Essa página não existe</h1>
+-        <p className="mt-2 max-w-sm text-sm text-stone-500">O endereço que você tentou acessar não foi encontrado neste ambiente.</p>
++        <p className="text-sm font-semibold text-stone-400 dark:text-stone-500">Erro 404</p>
++        <h1 className="mt-1 text-xl font-semibold text-stone-900 dark:text-stone-50">Essa página não existe</h1>
++        <p className="mt-2 max-w-sm text-sm text-stone-500 dark:text-stone-400">O endereço que você tentou acessar não foi encontrado neste ambiente.</p>
+       </div>
+       <button onClick={onVoltar} className="mt-2 rounded-lg bg-rose-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-rose-700">
+         Voltar para o painel
+@@ -58,14 +58,14 @@ export function NotFoundPage({ onVoltar }) {
+ 
+ export function MaintenancePage({ onVoltar }) {
+   return (
+-    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-stone-50 px-4 text-center">
+-      <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-100 text-amber-600">
++    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-stone-50 px-4 text-center dark:bg-stone-950">
++      <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-100 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400">
+         <Wrench className="h-7 w-7" />
+       </span>
+       <div>
+-        <p className="text-sm font-semibold text-stone-400">Manutenção programada</p>
+-        <h1 className="mt-1 text-xl font-semibold text-stone-900">Voltamos em instantes</h1>
+-        <p className="mt-2 max-w-sm text-sm text-stone-500">Estamos realizando uma atualização rápida na Vértice Next AI. O atendimento das suas clientes não é afetado.</p>
++        <p className="text-sm font-semibold text-stone-400 dark:text-stone-500">Manutenção programada</p>
++        <h1 className="mt-1 text-xl font-semibold text-stone-900 dark:text-stone-50">Voltamos em instantes</h1>
++        <p className="mt-2 max-w-sm text-sm text-stone-500 dark:text-stone-400">Estamos realizando uma atualização rápida na Vértice Next AI. O atendimento das suas clientes não é afetado.</p>
+       </div>
+       <button onClick={onVoltar} className="mt-2 rounded-lg bg-rose-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-rose-700">
+         Voltar para o painel
+diff --git a/vertice-next-ai/src/services/evolution.ts b/vertice-next-ai/src/services/evolution.ts
+index c2a5f5b..aa7a5e5 100644
+--- a/vertice-next-ai/src/services/evolution.ts
++++ b/vertice-next-ai/src/services/evolution.ts
+@@ -16,8 +16,8 @@
+  *
+  * ⚠️ Aviso de segurança: como este é um projeto front-end (Vite), as
+  * variáveis VITE_EVOLUTION_* ficam embutidas no bundle JavaScript enviado
+- * ao navegador — incluindo a API key. Isso é aceitável para esta fase de
+- * prototipagem/demonstração, mas NÃO deve ser usado assim em produção com
++ * ao navegador — incluindo a API key. Isso é aceitável para esta fase
++ * inicial do projeto piloto, mas NÃO deve ser usado assim em produção com
+  * dados reais de clientes. Antes de ir para produção, mova essas chamadas
+  * para trás de um backend/n8n (o mesmo padrão já usado em services/n8n.ts
+  * para a criação de briefings), para que a API key nunca fique exposta no

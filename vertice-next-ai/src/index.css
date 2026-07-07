@@ -1,1 +1,6 @@
 @import "tailwindcss";
+
+/* Ativa a variante `dark:` baseada na classe `.dark` no elemento <html>,
+   controlada pelo ThemeProvider (em vez do padrão `prefers-color-scheme`
+   do Tailwind, que não permite alternância manual persistida). */
+@custom-variant dark (&:where(.dark, .dark *));

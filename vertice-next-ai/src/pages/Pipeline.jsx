@@ -9,21 +9,21 @@ function PipelineCard({ card, onDragStart, onDragEnd, dragging }) {
       draggable
       onDragStart={(e) => onDragStart(e, card.id)}
       onDragEnd={onDragEnd}
-      className={`mb-2 cursor-grab rounded-xl border border-stone-200 bg-white p-3 shadow-sm transition-opacity active:cursor-grabbing ${dragging ? "opacity-40" : "opacity-100"}`}
+      className={`mb-2 cursor-grab rounded-xl border border-stone-200 bg-white p-3 shadow-sm transition-opacity active:cursor-grabbing dark:border-stone-800 dark:bg-stone-900 ${dragging ? "opacity-40" : "opacity-100"}`}
     >
       <div className="mb-2 flex items-start justify-between gap-2">
         <div className="flex items-center gap-2">
           <span className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-semibold ${card.avatarBg} ${card.avatarText}`}>{initials(card.cliente)}</span>
           <div>
-            <p className="text-xs font-medium text-stone-800">{card.cliente}</p>
-            <p className="text-[11px] text-stone-400">{card.evento}</p>
+            <p className="text-xs font-medium text-stone-800 dark:text-stone-200">{card.cliente}</p>
+            <p className="text-[11px] text-stone-400 dark:text-stone-500">{card.evento}</p>
           </div>
         </div>
         <Tooltip text="Arraste para mover">
-          <GripVertical className="h-3.5 w-3.5 flex-none text-stone-300" />
+          <GripVertical className="h-3.5 w-3.5 flex-none text-stone-300 dark:text-stone-600" />
         </Tooltip>
       </div>
-      <p className="text-xs font-medium text-stone-600">{card.valor}</p>
+      <p className="text-xs font-medium text-stone-600 dark:text-stone-400">{card.valor}</p>
     </div>
   );
 }
@@ -71,16 +71,16 @@ export default function PipelinePage({ briefings, loading, onMoveStatus }) {
               }}
               onDragLeave={() => setOverColuna(null)}
               onDrop={(e) => handleDrop(e, col.key)}
-              className={`min-h-[16rem] rounded-2xl border p-2.5 transition-colors ${overColuna === col.key ? "border-rose-300 bg-rose-50/40" : "border-stone-200 bg-stone-50/60"}`}
+              className={`min-h-[16rem] rounded-2xl border p-2.5 transition-colors ${overColuna === col.key ? "border-rose-300 bg-rose-50/40 dark:border-rose-800 dark:bg-rose-950/20" : "border-stone-200 bg-stone-50/60 dark:border-stone-800 dark:bg-stone-900/60"}`}
             >
               <div className="mb-2 flex items-center gap-1.5 px-1">
                 <span className={`h-2 w-2 rounded-full ${col.dot}`} />
-                <p className="text-xs font-semibold text-stone-700">{col.key}</p>
-                <span className="ml-auto text-[11px] text-stone-400">{itens.length}</span>
+                <p className="text-xs font-semibold text-stone-700 dark:text-stone-300">{col.key}</p>
+                <span className="ml-auto text-[11px] text-stone-400 dark:text-stone-500">{itens.length}</span>
               </div>
 
               {itens.length === 0 ? (
-                <div className="flex h-24 items-center justify-center rounded-xl border border-dashed border-stone-200 text-center text-[11px] text-stone-300">Arraste um card para cá</div>
+                <div className="flex h-24 items-center justify-center rounded-xl border border-dashed border-stone-200 text-center text-[11px] text-stone-300 dark:border-stone-700 dark:text-stone-600">Arraste um card para cá</div>
               ) : (
                 itens.map((card) => (
                   <PipelineCard

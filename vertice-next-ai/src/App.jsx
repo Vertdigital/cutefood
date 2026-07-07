@@ -17,7 +17,7 @@ import PipelinePage from "./pages/Pipeline";
 import AnalyticsPage from "./pages/Analytics";
 import SettingsPage from "./pages/Settings";
 
-// O botão "Popular com dados de exemplo" e os dados que ele grava só existem
+// O botão "Popular com dados de teste" e os dados que ele grava só existem
 // em ambiente de desenvolvimento (`npm run dev`). Numa build de produção
 // (`npm run build`), `import.meta.env.DEV` é `false` e este import nem é
 // incluído no bundle final graças ao tree-shaking do Vite.
@@ -61,7 +61,7 @@ export default function VerticeNextAI() {
   const selected = useMemo(() => briefings.find((b) => b.id === selectedId), [briefings, selectedId]);
   const selectedCliente = useMemo(() => clientes.find((c) => c.nome === selectedClienteNome), [clientes, selectedClienteNome]);
 
-  const entrarNaDemonstracao = useCallback(() => {
+  const entrarNoSistema = useCallback(() => {
     setFase("loading");
     setTimeout(() => setFase("app"), 900);
   }, []);
@@ -123,7 +123,7 @@ export default function VerticeNextAI() {
       }
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error("[Vértice Next AI] Falha ao popular dados de exemplo via n8n:", error);
+      console.error("[Vértice Next AI] Falha ao popular dados de teste via n8n:", error);
       setErrorBriefings(error);
     } finally {
       setSeeding(false);
@@ -158,7 +158,7 @@ export default function VerticeNextAI() {
     else handleNavigate(alvo.page);
   }, [tourStep, briefings, handleSelect, handleNavigate]);
 
-  if (fase === "landing") return <LandingPage onEntrar={entrarNaDemonstracao} />;
+  if (fase === "landing") return <LandingPage onEntrar={entrarNoSistema} />;
   if (fase === "loading") return <LoadingScreen />;
   if (page === "notfound") return <NotFoundPage onVoltar={() => handleNavigate("dashboard")} />;
   if (page === "maintenance") return <MaintenancePage onVoltar={() => handleNavigate("dashboard")} />;
@@ -206,7 +206,7 @@ export default function VerticeNextAI() {
   const sidebarPage = page === "detail" ? detailOrigin : page === "clienteDetail" ? "clientes" : page;
 
   return (
-    <div className="flex min-h-screen bg-stone-50">
+    <div className="flex min-h-screen bg-stone-50 dark:bg-stone-950">
       <Sidebar page={sidebarPage} onNavigate={handleNavigate} />
       <div className="flex flex-1 flex-col">
         <Header
@@ -214,8 +214,8 @@ export default function VerticeNextAI() {
           confeiteira="Confeiteira CuteFood"
           onNovoAtendimento={() => setSimulationOpen(true)}
           onIniciarTour={iniciarTour}
-          onDemoNotFound={() => setPage("notfound")}
-          onDemoMaintenance={() => setPage("maintenance")}
+          onVerPagina404={() => setPage("notfound")}
+          onVerModoManutencao={() => setPage("maintenance")}
         />
         <main className="flex-1 overflow-y-auto px-4 py-6 pb-28 sm:px-8 sm:py-8">
           <div className="mx-auto max-w-6xl">{content}</div>

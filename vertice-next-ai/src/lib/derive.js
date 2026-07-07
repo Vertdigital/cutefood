@@ -1,17 +1,17 @@
 // Constantes visuais e funções puras derivadas exclusivamente de `briefings`
-// (o array vindo do Firestore). Nenhum dado de exemplo/mock vive aqui —
-// apenas estilos de UI e transformações de dados reais.
+// (o array vindo do Firestore). Este arquivo não guarda nenhum dado próprio —
+// apenas estilos de UI e transformações sobre os dados reais recebidos.
 
 import { Inbox, Loader2, Clock3, CheckCircle2, PackageCheck } from "lucide-react";
 import { formatDataCompleta } from "../utils/date";
 
 export const statusStyles = {
-  "Novo": { icon: Inbox, badge: "bg-stone-100 text-stone-600" },
-  "Briefing": { icon: Loader2, badge: "bg-sky-50 text-sky-700" },
-  "Orçamento": { icon: Clock3, badge: "bg-amber-50 text-amber-700" },
-  "Aprovado": { icon: CheckCircle2, badge: "bg-violet-50 text-violet-700" },
-  "Produção": { icon: Loader2, badge: "bg-indigo-50 text-indigo-700" },
-  "Finalizado": { icon: PackageCheck, badge: "bg-emerald-50 text-emerald-700" },
+  "Novo": { icon: Inbox, badge: "bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-300" },
+  "Briefing": { icon: Loader2, badge: "bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300" },
+  "Orçamento": { icon: Clock3, badge: "bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300" },
+  "Aprovado": { icon: CheckCircle2, badge: "bg-violet-50 text-violet-700 dark:bg-violet-950/50 dark:text-violet-300" },
+  "Produção": { icon: Loader2, badge: "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300" },
+  "Finalizado": { icon: PackageCheck, badge: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300" },
 };
 
 export const pipelineColumns = [
@@ -26,19 +26,19 @@ export const pipelineColumns = [
 export const complexidadeDot = { "Simples": "bg-emerald-500", "Média": "bg-amber-500", "Alta": "bg-rose-500" };
 
 export const avatarPalette = [
-  { bg: "bg-rose-100", text: "text-rose-700" },
-  { bg: "bg-amber-100", text: "text-amber-700" },
-  { bg: "bg-emerald-100", text: "text-emerald-700" },
-  { bg: "bg-sky-100", text: "text-sky-700" },
-  { bg: "bg-violet-100", text: "text-violet-700" },
+  { bg: "bg-rose-100 dark:bg-rose-950/50", text: "text-rose-700 dark:text-rose-300" },
+  { bg: "bg-amber-100 dark:bg-amber-950/50", text: "text-amber-700 dark:text-amber-300" },
+  { bg: "bg-emerald-100 dark:bg-emerald-950/50", text: "text-emerald-700 dark:text-emerald-300" },
+  { bg: "bg-sky-100 dark:bg-sky-950/50", text: "text-sky-700 dark:text-sky-300" },
+  { bg: "bg-violet-100 dark:bg-violet-950/50", text: "text-violet-700 dark:text-violet-300" },
 ];
 
 export const clienteStatusStyles = {
-  "Ativo": "bg-emerald-50 text-emerald-700",
-  "Novo": "bg-sky-50 text-sky-700",
-  "Em negociação": "bg-amber-50 text-amber-700",
-  "Fiel": "bg-violet-50 text-violet-700",
-  "Inativo": "bg-stone-100 text-stone-500",
+  "Ativo": "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300",
+  "Novo": "bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300",
+  "Em negociação": "bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300",
+  "Fiel": "bg-violet-50 text-violet-700 dark:bg-violet-950/50 dark:text-violet-300",
+  "Inativo": "bg-stone-100 text-stone-500 dark:bg-stone-800 dark:text-stone-400",
 };
 
 export function initials(name) {

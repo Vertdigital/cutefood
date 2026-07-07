@@ -16,8 +16,8 @@
  *
  * ⚠️ Aviso de segurança: como este é um projeto front-end (Vite), as
  * variáveis VITE_EVOLUTION_* ficam embutidas no bundle JavaScript enviado
- * ao navegador — incluindo a API key. Isso é aceitável para esta fase de
- * prototipagem/demonstração, mas NÃO deve ser usado assim em produção com
+ * ao navegador — incluindo a API key. Isso é aceitável para esta fase
+ * inicial do projeto piloto, mas NÃO deve ser usado assim em produção com
  * dados reais de clientes. Antes de ir para produção, mova essas chamadas
  * para trás de um backend/n8n (o mesmo padrão já usado em services/n8n.ts
  * para a criação de briefings), para que a API key nunca fique exposta no

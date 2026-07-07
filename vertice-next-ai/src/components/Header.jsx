@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Play, Plus, Bell, ChevronDown } from "lucide-react";
 import { initials } from "../lib/derive";
 import { Tooltip } from "./ui";
+import ThemeToggle from "./ThemeToggle";
 
 const PAGE_TITLES = {
   dashboard: "Dashboard",
@@ -15,7 +16,7 @@ const PAGE_TITLES = {
   analytics: "Analytics",
 };
 
-export default function Header({ page, confeiteira, onNovoAtendimento, onIniciarTour, onDemoNotFound, onDemoMaintenance }) {
+export default function Header({ page, confeiteira, onNovoAtendimento, onIniciarTour, onVerPagina404, onVerModoManutencao }) {
   const [notifOpen, setNotifOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -28,12 +29,12 @@ export default function Header({ page, confeiteira, onNovoAtendimento, onIniciar
   ];
 
   return (
-    <header className="flex items-center justify-between border-b border-stone-200 bg-white px-4 py-4 sm:px-8">
-      <p className="text-sm font-medium text-stone-400">{PAGE_TITLES[page] || "Vértice Next AI"}</p>
+    <header className="flex items-center justify-between border-b border-stone-200 bg-white px-4 py-4 sm:px-8 dark:border-stone-800 dark:bg-stone-900">
+      <p className="text-sm font-medium text-stone-400 dark:text-stone-500">{PAGE_TITLES[page] || "Vértice Next AI"}</p>
 
       <div className="flex items-center gap-2 sm:gap-3">
         <Tooltip text="Iniciar tour guiado">
-          <button onClick={onIniciarTour} className="flex items-center gap-2 rounded-lg border border-stone-200 px-3 py-2 text-xs font-medium text-stone-600 transition-colors hover:bg-stone-50">
+          <button onClick={onIniciarTour} className="flex items-center gap-2 rounded-lg border border-stone-200 px-3 py-2 text-xs font-medium text-stone-600 transition-colors hover:bg-stone-50 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800">
             <Play className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Tour guiado</span>
           </button>
@@ -44,20 +45,22 @@ export default function Header({ page, confeiteira, onNovoAtendimento, onIniciar
           <span className="hidden sm:inline">Novo atendimento</span>
         </button>
 
+        <ThemeToggle />
+
         <div className="relative">
           <Tooltip text="Notificações">
-            <button onClick={() => setNotifOpen((v) => !v)} className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 text-stone-500 transition-colors hover:bg-stone-50">
+            <button onClick={() => setNotifOpen((v) => !v)} className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 text-stone-500 transition-colors hover:bg-stone-50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800">
               <Bell className="h-4 w-4" />
               <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-rose-600" />
             </button>
           </Tooltip>
           {notifOpen && (
-            <div className="absolute right-0 z-20 mt-2 w-72 rounded-xl border border-stone-200 bg-white p-2 shadow-lg">
-              <p className="px-2 py-1.5 text-xs font-semibold text-stone-500">Notificações</p>
+            <div className="absolute right-0 z-20 mt-2 w-72 rounded-xl border border-stone-200 bg-white p-2 shadow-lg dark:border-stone-700 dark:bg-stone-900">
+              <p className="px-2 py-1.5 text-xs font-semibold text-stone-500 dark:text-stone-400">Notificações</p>
               {notificacoes.map((n, i) => (
-                <div key={i} className="rounded-lg px-2 py-2 hover:bg-stone-50">
-                  <p className="text-xs text-stone-700">{n.texto}</p>
-                  <p className="text-[11px] text-stone-400">{n.tempo}</p>
+                <div key={i} className="rounded-lg px-2 py-2 hover:bg-stone-50 dark:hover:bg-stone-800">
+                  <p className="text-xs text-stone-700 dark:text-stone-300">{n.texto}</p>
+                  <p className="text-[11px] text-stone-400 dark:text-stone-500">{n.tempo}</p>
                 </div>
               ))}
             </div>
@@ -65,21 +68,21 @@ export default function Header({ page, confeiteira, onNovoAtendimento, onIniciar
         </div>
 
         <div className="relative">
-          <button onClick={() => setMenuOpen((v) => !v)} className="flex items-center gap-2 rounded-lg border border-stone-200 py-1.5 pl-1.5 pr-2.5 transition-colors hover:bg-stone-50">
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-stone-200 text-xs font-semibold text-stone-600">{initials(confeiteira)}</span>
-            <span className="hidden text-xs font-medium text-stone-700 sm:inline">{confeiteira}</span>
-            <ChevronDown className="h-3.5 w-3.5 text-stone-400" />
+          <button onClick={() => setMenuOpen((v) => !v)} className="flex items-center gap-2 rounded-lg border border-stone-200 py-1.5 pl-1.5 pr-2.5 transition-colors hover:bg-stone-50 dark:border-stone-700 dark:hover:bg-stone-800">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-stone-200 text-xs font-semibold text-stone-600 dark:bg-stone-700 dark:text-stone-300">{initials(confeiteira)}</span>
+            <span className="hidden text-xs font-medium text-stone-700 sm:inline dark:text-stone-300">{confeiteira}</span>
+            <ChevronDown className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
           </button>
           {menuOpen && (
-            <div className="absolute right-0 z-20 mt-2 w-52 rounded-xl border border-stone-200 bg-white p-1.5 shadow-lg">
-              <button className="w-full rounded-lg px-3 py-2 text-left text-xs text-stone-600 hover:bg-stone-50">Meu perfil</button>
-              <button className="w-full rounded-lg px-3 py-2 text-left text-xs text-stone-600 hover:bg-stone-50">Sair</button>
-              <div className="my-1 border-t border-stone-100" />
-              <button onClick={onDemoNotFound} className="w-full rounded-lg px-3 py-2 text-left text-xs text-stone-500 hover:bg-stone-50">
-                Ver página 404 (demo)
+            <div className="absolute right-0 z-20 mt-2 w-52 rounded-xl border border-stone-200 bg-white p-1.5 shadow-lg dark:border-stone-700 dark:bg-stone-900">
+              <button className="w-full rounded-lg px-3 py-2 text-left text-xs text-stone-600 hover:bg-stone-50 dark:text-stone-300 dark:hover:bg-stone-800">Meu perfil</button>
+              <button className="w-full rounded-lg px-3 py-2 text-left text-xs text-stone-600 hover:bg-stone-50 dark:text-stone-300 dark:hover:bg-stone-800">Sair</button>
+              <div className="my-1 border-t border-stone-100 dark:border-stone-800" />
+              <button onClick={onVerPagina404} className="w-full rounded-lg px-3 py-2 text-left text-xs text-stone-500 hover:bg-stone-50 dark:text-stone-400 dark:hover:bg-stone-800">
+                Ver página 404
               </button>
-              <button onClick={onDemoMaintenance} className="w-full rounded-lg px-3 py-2 text-left text-xs text-stone-500 hover:bg-stone-50">
-                Ver modo manutenção (demo)
+              <button onClick={onVerModoManutencao} className="w-full rounded-lg px-3 py-2 text-left text-xs text-stone-500 hover:bg-stone-50 dark:text-stone-400 dark:hover:bg-stone-800">
+                Ver modo manutenção
               </button>
             </div>
           )}
