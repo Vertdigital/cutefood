@@ -1,0 +1,66 @@
+rules_version = '2';
+
+// Regras do Firestore para o Vértice Next AI — arquitetura multi-tenant.
+// Ver docs/arquitetura/CF-070-modelagem-multi-tenant.md.
+//
+// ATENÇÃO: Authentication ainda não está em uso pela interface (está apenas
+// configurado em src/firebase/firebase.ts para uso futuro). Por isso, as
+// regras abaixo liberam leitura/escrita sem exigir autenticação, apenas
+// para viabilizar a demonstração — mas já EXIGEM que todo documento
+// carregue um `companyId` do tipo string, impondo a regra "nenhuma coleção
+// existe sem companyId" mesmo antes de existir login real.
+//
+// Antes de qualquer uso em produção com dados reais de clientes, troque a
+// condição `true` por `request.auth != null` e valide que
+// `request.auth.token.companyId == resource.data.companyId` (ou equivalente),
+// isolando de fato os dados entre empresas.
+
+function temCompanyId() {
+  return request.resource.data.companyId is string && request.resource.data.companyId.size() > 0;
+}
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /companies/{companyId} {
+      allow read: if true;
+      allow write: if true; // TODO: restringir criação/edição de empresas a administradores
+    }
+
+    match /customers/{customerId} {
+      allow read: if true;
+      allow create, update: if temCompanyId();
+      allow delete: if true; // TODO: restringir com Authentication antes de produção
+    }
+
+    match /conversations/{conversationId} {
+      allow read: if true;
+      allow create, update: if temCompanyId(); // na prática, gravado pelo n8n via credencial de serviço (bypassa regras)
+      allow delete: if true; // TODO: restringir com Authentication antes de produção
+    }
+
+    match /messages/{messageId} {
+      allow read: if true;
+      allow create, update: if temCompanyId(); // na prática, gravado pelo n8n via credencial de serviço (bypassa regras)
+      allow delete: if true; // TODO: restringir com Authentication antes de produção
+    }
+
+    match /briefings/{briefingId} {
+      allow read: if true;
+      allow create, update: if temCompanyId();
+      allow delete: if true; // TODO: restringir com Authentication antes de produção
+    }
+
+    match /orders/{orderId} {
+      allow read: if true;
+      allow create, update: if temCompanyId();
+      allow delete: if true; // TODO: restringir com Authentication antes de produção
+    }
+
+    match /workOrders/{workOrderId} {
+      allow read: if true;
+      allow create, update: if temCompanyId();
+      allow delete: if true; // TODO: restringir com Authentication antes de produção
+    }
+  }
+}

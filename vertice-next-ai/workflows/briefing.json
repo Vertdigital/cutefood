@@ -1,0 +1,259 @@
+{
+  "name": "Vértice Next AI — Criar Briefing",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "briefing",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "1a1b1c1d-0001-4a11-8a11-000000000001",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        300
+      ],
+      "webhookId": "vertice-next-ai-criar-briefing"
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Valida os dados recebidos do front-end antes de gravar no Firestore.\n// Campos obrigatórios definidos pelo schema da coleção `briefings`\n// (ver services/briefings.ts e docs/integracoes/n8n.md).\nconst body = $input.first().json.body || $input.first().json;\n\nconst obrigatorios = [\n  \"cliente\",\n  \"telefone\",\n  \"evento\",\n  \"data\",\n  \"status\",\n  \"complexidade\",\n];\n\nconst erros = [];\n\nfor (const campo of obrigatorios) {\n  if (!body[campo] || String(body[campo]).trim() === \"\") {\n    erros.push(`Campo obrigatório ausente ou vazio: ${campo}`);\n  }\n}\n\nconst statusValidos = [\"Novo\", \"Briefing\", \"Orçamento\", \"Aprovado\", \"Produção\", \"Finalizado\"];\nif (body.status && !statusValidos.includes(body.status)) {\n  erros.push(`Status inválido: ${body.status}`);\n}\n\nconst complexidadesValidas = [\"Simples\", \"Média\", \"Alta\"];\nif (body.complexidade && !complexidadesValidas.includes(body.complexidade)) {\n  erros.push(`Complexidade inválida: ${body.complexidade}`);\n}\n\nif (body.data && !/^\\d{4}-\\d{2}-\\d{2}$/.test(body.data)) {\n  erros.push(\"Campo 'data' deve estar no formato ISO AAAA-MM-DD\");\n}\n\nreturn [\n  {\n    json: {\n      valido: erros.length === 0,\n      erros,\n      dados: body,\n    },\n  },\n];"
+      },
+      "id": "1a1b1c1d-0002-4a11-8a11-000000000002",
+      "name": "Validar dados",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        20,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-valido",
+              "leftValue": "={{ $json.valido }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "1a1b1c1d-0003-4a11-8a11-000000000003",
+      "name": "Dados válidos?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Converte o objeto simples recebido do front-end para o formato de\n// campos tipados exigido pela API REST do Firestore (fields.{campo}.{tipo}Value).\nconst d = $input.first().json.dados;\nconst agoraISO = new Date().toISOString();\n\nfunction s(valor) { return { stringValue: String(valor ?? \"\") }; }\nfunction n(valor) { return { integerValue: String(Number(valor) || 0) }; }\n\nconst fields = {\n  companyId: s($env.DEFAULT_COMPANY_ID || \"cutefood-cwb\"),\n  customerId: s(d.customerId || \"\"),\n  conversationId: s(d.conversationId || \"\"),\n  cliente: s(d.cliente),\n  telefone: s(d.telefone),\n  evento: s(d.evento),\n  data: s(d.data),\n  tema: s(d.tema),\n  sabores: s(d.sabores),\n  quantidade: s(d.quantidade),\n  orcamento: s(d.orcamento),\n  entrega: s(d.entrega),\n  referencias: n(d.referencias),\n  observacoes: s(d.observacoes),\n  status: s(d.status || \"Novo\"),\n  complexidade: s(d.complexidade || \"Simples\"),\n  avatarBg: s(d.avatarBg || \"bg-stone-100\"),\n  avatarText: s(d.avatarText || \"text-stone-600\"),\n  createdAt: { timestampValue: agoraISO },\n  updatedAt: { timestampValue: agoraISO },\n};\n\nif (Array.isArray(d.mensagens)) {\n  fields.mensagens = {\n    arrayValue: {\n      values: d.mensagens.map((m) => ({\n        mapValue: {\n          fields: {\n            autor: s(m.autor),\n            texto: s(m.texto),\n            hora: s(m.hora),\n          },\n        },\n      })),\n    },\n  };\n}\n\nreturn [{ json: { fields } }];"
+      },
+      "id": "1a1b1c1d-0004-4a11-8a11-000000000004",
+      "name": "Formatar documento Firestore",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://firestore.googleapis.com/v1/projects/{{$env.FIREBASE_PROJECT_ID}}/databases/(default)/documents/briefings",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ fields: $json.fields }) }}",
+        "options": {}
+      },
+      "id": "1a1b1c1d-0005-4a11-8a11-000000000005",
+      "name": "Salvar no Firestore",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        680,
+        200
+      ],
+      "notesInFlow": true,
+      "notes": "Requer credencial Google (Service Account) com o escopo https://www.googleapis.com/auth/datastore configurada no n8n. Veja docs/integracoes/n8n.md."
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// A resposta da API REST do Firestore traz o caminho completo do documento\n// em `name`, ex: projects/P/databases/(default)/documents/briefings/ABC123.\n// Extraímos só o ID final para devolver ao front-end.\nconst nomeCompleto = $input.first().json.name || \"\";\nconst partes = nomeCompleto.split(\"/\");\nconst id = partes[partes.length - 1];\n\nreturn [\n  {\n    json: {\n      success: true,\n      id,\n    },\n  },\n];"
+      },
+      "id": "1a1b1c1d-0006-4a11-8a11-000000000006",
+      "name": "Formatar resposta de sucesso",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "1a1b1c1d-0007-4a11-8a11-000000000007",
+      "name": "Responder sucesso",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "return [\n  {\n    json: {\n      success: false,\n      error: \"Dados inválidos para criação do briefing.\",\n      erros: $input.first().json.erros,\n    },\n  },\n];"
+      },
+      "id": "1a1b1c1d-0008-4a11-8a11-000000000008",
+      "name": "Formatar resposta de erro",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "1a1b1c1d-0009-4a11-8a11-000000000009",
+      "name": "Responder erro",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        680,
+        420
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validar dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar dados": {
+      "main": [
+        [
+          {
+            "node": "Dados válidos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dados válidos?": {
+      "main": [
+        [
+          {
+            "node": "Formatar documento Firestore",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Formatar resposta de erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatar documento Firestore": {
+      "main": [
+        [
+          {
+            "node": "Salvar no Firestore",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvar no Firestore": {
+      "main": [
+        [
+          {
+            "node": "Formatar resposta de sucesso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatar resposta de sucesso": {
+      "main": [
+        [
+          {
+            "node": "Responder sucesso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatar resposta de erro": {
+      "main": [
+        [
+          {
+            "node": "Responder erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "description": "Fluxo: Webhook -> Validar dados -> Salvar no Firestore -> Retornar JSON. Usado exclusivamente para a CRIAÇÃO de novos briefings a partir do front-end da Vértice Next AI. Edição, exclusão e mudança de status continuam indo direto ao Firestore via src/services/briefings.ts. Todo documento criado inclui companyId (multi-tenant), lido de $env.DEFAULT_COMPANY_ID."
+  }
+}

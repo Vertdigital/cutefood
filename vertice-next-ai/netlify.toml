@@ -1,0 +1,14 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Como esta é uma SPA (Single Page Application) sem roteamento por URL,
+# qualquer caminho é servido pelo mesmo index.html — a navegação entre
+# telas acontece inteiramente via estado React, não via rotas de URL.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

@@ -1,0 +1,681 @@
+{
+  "name": "Vértice Next AI — Atendimento IA",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "atendimento-ia",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "b1000001-0000-4a11-8a11-000000000001",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1000,
+        400
+      ],
+      "webhookId": "vertice-next-ai-atendimento-ia"
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Extrai os dados relevantes do payload de webhook da Evolution API.\n// Formato defensivo: cobre tanto `message.conversation` (texto simples)\n// quanto `message.extendedTextMessage.text` (texto com contexto/resposta).\nconst body = $input.first().json.body || $input.first().json;\nconst data = body.data || body;\n\nconst remoteJid = data?.key?.remoteJid || \"\";\nconst numero = remoteJid.replace(\"@s.whatsapp.net\", \"\").replace(\"@g.us\", \"\");\nconst fromMe = !!data?.key?.fromMe;\nconst texto =\n  data?.message?.conversation ||\n  data?.message?.extendedTextMessage?.text ||\n  data?.message?.imageMessage?.caption ||\n  \"\";\nconst temImagem = !!data?.message?.imageMessage;\nconst nomeCliente = data?.pushName || \"Cliente\";\nconst evolutionMessageId = data?.key?.id || \"\";\nconst timestamp = data?.messageTimestamp ? Number(data.messageTimestamp) * 1000 : Date.now();\nconst companyId = $env.DEFAULT_COMPANY_ID || \"cutefood-cwb\";\n// ID da conversa: como o mesmo telefone pode, em teoria, existir em mais\n// de uma empresa, o ID do documento é composto (ver docs/arquitetura/CF-070).\nconst conversationId = `${companyId}_${numero}`;\n\nreturn [\n  {\n    json: {\n      numero,\n      companyId,\n      conversationId,\n      fromMe,\n      texto,\n      temImagem,\n      nomeCliente,\n      evolutionMessageId,\n      timestamp,\n    },\n  },\n];"
+      },
+      "id": "b1000001-0000-4a11-8a11-000000000002",
+      "name": "Receber mensagem",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -780,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-fromme",
+              "leftValue": "={{ $json.fromMe }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b1000001-0000-4a11-8a11-000000000003",
+      "name": "É eco da própria IA?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, ignorado: true, motivo: \"mensagem enviada pela própria instância\" }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "b1000001-0000-4a11-8a11-000000000004",
+      "name": "Ignorar eco",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -340,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://firestore.googleapis.com/v1/projects/{{$env.FIREBASE_PROJECT_ID}}/databases/(default)/documents/conversations/{{$json.conversationId}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleApi",
+        "options": {
+          "ignoreHttpStatusErrors": true
+        }
+      },
+      "id": "b1000001-0000-4a11-8a11-000000000005",
+      "name": "Buscar conversa",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -340,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// A conversa usa o próprio número de telefone como ID do documento — ver\n// docs/integracoes/claude.md para a justificativa dessa escolha.\n// Se o GET anterior devolveu 404, a conversa ainda não existe.\nconst resposta = $input.first().json;\nconst mensagem = $('Receber mensagem').first().json;\n\nconst conversaExiste = !resposta.error && !!resposta.fields;\nconst briefingId = conversaExiste && resposta.fields.briefingId ? resposta.fields.briefingId.stringValue : null;\n\nreturn [\n  {\n    json: {\n      ...mensagem,\n      conversaExiste,\n      briefingId,\n    },\n  },\n];"
+      },
+      "id": "b1000001-0000-4a11-8a11-000000000006",
+      "name": "Resolver estado",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -120,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://firestore.googleapis.com/v1/projects/{{$env.FIREBASE_PROJECT_ID}}/databases/(default)/documents:runQuery",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ structuredQuery: { from: [{ collectionId: \"messages\" }], where: { fieldFilter: { field: { fieldPath: \"conversationId\" }, op: \"EQUAL\", value: { stringValue: $json.conversationId } } }, orderBy: [{ field: { fieldPath: \"createdAt\" }, direction: \"ASCENDING\" }], limit: 20 } }) }}",
+        "options": {}
+      },
+      "id": "b1000001-0000-4a11-8a11-000000000007",
+      "name": "Buscar mensagens anteriores",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        100,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-tem-briefing",
+              "leftValue": "={{ $json.briefingId }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b1000001-0000-4a11-8a11-000000000008",
+      "name": "Já existe briefing?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        320,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://firestore.googleapis.com/v1/projects/{{$env.FIREBASE_PROJECT_ID}}/databases/(default)/documents/briefings/{{$json.briefingId}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleApi",
+        "options": {}
+      },
+      "id": "b1000001-0000-4a11-8a11-000000000009",
+      "name": "Buscar briefing atual",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        540,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Monta o array de mensagens para o Claude: prompt de sistema (baseado em\n// docs/prompts/CF-040-prompt-mestre.md) + histórico da coleção `messages`\n// + a mensagem nova recebida agora. Também repassa o snapshot atual do\n// briefing (se existir) para o Claude não perder o que já foi coletado.\nconst dadosMensagem = $('Resolver estado').first().json;\nconst historicoRaw = $('Buscar mensagens anteriores').first().json || [];\n\nfunction lerCampo(fields, nome, padrao = \"\") {\n  if (!fields || !fields[nome]) return padrao;\n  const v = fields[nome];\n  return v.stringValue ?? v.integerValue ?? padrao;\n}\n\nconst historico = (Array.isArray(historicoRaw) ? historicoRaw : [])\n  .filter((r) => r.document)\n  .map((r) => {\n    const f = r.document.fields;\n    return { autor: lerCampo(f, \"autor\"), texto: lerCampo(f, \"texto\") };\n  });\n\nlet briefingAtual = {};\ntry {\n  const briefingNode = $('Buscar briefing atual').first();\n  if (briefingNode && briefingNode.json && briefingNode.json.fields) {\n    const f = briefingNode.json.fields;\n    briefingAtual = {\n      evento: lerCampo(f, \"evento\"),\n      tema: lerCampo(f, \"tema\"),\n      data: lerCampo(f, \"data\"),\n      quantidade: lerCampo(f, \"quantidade\"),\n      sabores: lerCampo(f, \"sabores\"),\n      orcamento: lerCampo(f, \"orcamento\"),\n      entrega: lerCampo(f, \"entrega\"),\n      status: lerCampo(f, \"status\", \"Novo\"),\n      complexidade: lerCampo(f, \"complexidade\", \"Simples\"),\n    };\n  }\n} catch (e) {\n  briefingAtual = {};\n}\n\nconst systemPrompt = `Você é a assistente virtual da CuteFood. Siga rigorosamente o Prompt Mestre do projeto (docs/prompts/CF-040-prompt-mestre.md): seja simpática, elegante, organizada, paciente, consultiva e acolhedora — nunca robótica. Conduza o briefing, uma pergunta por vez quando necessário, confirme dados importantes, registre referências visuais quando mencionadas. NUNCA negocie preço, prazo, nem aprove pedidos — essas decisões são sempre da confeiteira. Responda SEMPRE em um JSON válido, sem nenhum texto fora do JSON, no formato exato:\n{\n  \"resposta\": \"texto da mensagem a ser enviada ao cliente pelo WhatsApp\",\n  \"briefing\": {\n    \"evento\": \"...\", \"tema\": \"...\", \"data\": \"AAAA-MM-DD ou vazio\", \"quantidade\": \"...\", \"sabores\": \"...\", \"orcamento\": \"...\", \"entrega\": \"...\", \"status\": \"Novo|Briefing|Orçamento|Aprovado|Produção|Finalizado\", \"complexidade\": \"Simples|Média|Alta\"\n  }\n}\nMantenha em \"briefing\" todos os campos já conhecidos (não apague informações já coletadas em turnos anteriores) e atualize apenas o que mudou nesta mensagem.`;\n\nconst mensagensClaude = [\n  ...historico.map((h) => ({ role: h.autor === \"ia\" ? \"assistant\" : \"user\", content: h.texto })),\n  { role: \"user\", content: dadosMensagem.texto },\n];\n\nreturn [\n  {\n    json: {\n      ...dadosMensagem,\n      briefingAtual,\n      systemPrompt,\n      mensagensClaude,\n    },\n  },\n];"
+      },
+      "id": "b1000001-0000-4a11-8a11-00000000000a",
+      "name": "Montar contexto",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $env.ANTHROPIC_API_KEY }}"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: $env.ANTHROPIC_MODEL || \"claude-sonnet-4-5\", max_tokens: 1024, system: $json.systemPrompt, messages: $json.mensagensClaude }) }}",
+        "options": {}
+      },
+      "id": "b1000001-0000-4a11-8a11-00000000000b",
+      "name": "Enviar para Claude",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        980,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// A resposta do Claude vem em content[0].text — pedimos, no prompt de\n// sistema, que esse texto seja um JSON com { resposta, briefing }.\nconst contexto = $('Montar contexto').first().json;\nconst claudeOut = $input.first().json;\nconst textoBruto = claudeOut?.content?.[0]?.text || \"{}\";\n\nlet parsed;\ntry {\n  parsed = JSON.parse(textoBruto);\n} catch (e) {\n  // Se o Claude não devolveu um JSON válido, cai para uma resposta segura\n  // em vez de quebrar o workflow.\n  parsed = {\n    resposta: \"Só um instante, já te retorno com mais detalhes! 💛\",\n    briefing: contexto.briefingAtual || {},\n  };\n}\n\nreturn [\n  {\n    json: {\n      ...contexto,\n      respostaTexto: parsed.resposta,\n      briefingNovo: { ...contexto.briefingAtual, ...(parsed.briefing || {}) },\n    },\n  },\n];"
+      },
+      "id": "b1000001-0000-4a11-8a11-00000000000c",
+      "name": "Receber resposta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://firestore.googleapis.com/v1/projects/{{$env.FIREBASE_PROJECT_ID}}/databases/(default)/documents/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ fields: { companyId: { stringValue: $json.companyId }, conversationId: { stringValue: $json.conversationId }, autor: { stringValue: \"cliente\" }, texto: { stringValue: $json.texto }, hora: { stringValue: new Date($json.timestamp).toISOString() }, createdAt: { timestampValue: new Date($json.timestamp).toISOString() } } }) }}",
+        "options": {}
+      },
+      "id": "b1000001-0000-4a11-8a11-00000000000d",
+      "name": "Salvar mensagem do cliente",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1420,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://firestore.googleapis.com/v1/projects/{{$env.FIREBASE_PROJECT_ID}}/databases/(default)/documents/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ fields: { companyId: { stringValue: $json.companyId }, conversationId: { stringValue: $json.conversationId }, autor: { stringValue: \"ia\" }, texto: { stringValue: $json.respostaTexto }, hora: { stringValue: new Date().toISOString() }, createdAt: { timestampValue: new Date().toISOString() } } }) }}",
+        "options": {}
+      },
+      "id": "b1000001-0000-4a11-8a11-00000000000e",
+      "name": "Salvar mensagem da IA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1640,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-tem-briefing-2",
+              "leftValue": "={{ $json.briefingId }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b1000001-0000-4a11-8a11-00000000000f",
+      "name": "Criar ou atualizar briefing?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1860,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://firestore.googleapis.com/v1/projects/{{$env.FIREBASE_PROJECT_ID}}/databases/(default)/documents/briefings/{{$json.briefingId}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ fields: { evento: { stringValue: $json.briefingNovo.evento || \"\" }, tema: { stringValue: $json.briefingNovo.tema || \"\" }, data: { stringValue: $json.briefingNovo.data || \"\" }, quantidade: { stringValue: $json.briefingNovo.quantidade || \"\" }, sabores: { stringValue: $json.briefingNovo.sabores || \"\" }, orcamento: { stringValue: $json.briefingNovo.orcamento || \"\" }, entrega: { stringValue: $json.briefingNovo.entrega || \"\" }, status: { stringValue: $json.briefingNovo.status || \"Novo\" }, complexidade: { stringValue: $json.briefingNovo.complexidade || \"Simples\" }, updatedAt: { timestampValue: new Date().toISOString() } } }) }}",
+        "options": {}
+      },
+      "id": "b1000001-0000-4a11-8a11-000000000010",
+      "name": "Atualizar briefing existente",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2080,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://firestore.googleapis.com/v1/projects/{{$env.FIREBASE_PROJECT_ID}}/databases/(default)/documents/briefings",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ fields: { companyId: { stringValue: $json.companyId }, cliente: { stringValue: $json.nomeCliente }, telefone: { stringValue: $json.numero }, conversationId: { stringValue: $json.conversationId }, evento: { stringValue: $json.briefingNovo.evento || \"\" }, tema: { stringValue: $json.briefingNovo.tema || \"\" }, data: { stringValue: $json.briefingNovo.data || \"\" }, quantidade: { stringValue: $json.briefingNovo.quantidade || \"\" }, sabores: { stringValue: $json.briefingNovo.sabores || \"\" }, orcamento: { stringValue: $json.briefingNovo.orcamento || \"\" }, entrega: { stringValue: $json.briefingNovo.entrega || \"\" }, referencias: { integerValue: \"0\" }, observacoes: { stringValue: \"Criado automaticamente pelo workflow Atendimento IA.\" }, status: { stringValue: $json.briefingNovo.status || \"Novo\" }, complexidade: { stringValue: $json.briefingNovo.complexidade || \"Simples\" }, createdAt: { timestampValue: new Date().toISOString() }, updatedAt: { timestampValue: new Date().toISOString() } } }) }}",
+        "options": {}
+      },
+      "id": "b1000001-0000-4a11-8a11-000000000011",
+      "name": "Criar novo briefing",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2080,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Extrai o ID do briefing recém-criado a partir do `name` retornado pela\n// API REST do Firestore (mesmo padrão usado em workflows/briefing.json).\nconst nomeCompleto = $input.first().json.name || \"\";\nconst partes = nomeCompleto.split(\"/\");\nconst novoBriefingId = partes[partes.length - 1];\nconst contexto = $('Receber resposta').first().json;\n\nreturn [{ json: { ...contexto, briefingId: novoBriefingId } }];"
+      },
+      "id": "b1000001-0000-4a11-8a11-000000000012",
+      "name": "Extrair novo briefingId",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2300,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://firestore.googleapis.com/v1/projects/{{$env.FIREBASE_PROJECT_ID}}/databases/(default)/documents/conversations/{{$json.conversationId}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ fields: { companyId: { stringValue: $json.companyId }, telefone: { stringValue: $json.numero }, cliente: { stringValue: $json.nomeCliente }, briefingId: { stringValue: $json.briefingId }, ultimaMensagem: { stringValue: $json.respostaTexto }, status: { stringValue: \"Em atendimento\" }, updatedAt: { timestampValue: new Date().toISOString() } } }) }}",
+        "options": {}
+      },
+      "id": "b1000001-0000-4a11-8a11-000000000013",
+      "name": "Atualizar conversa",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2520,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://{{$env.EVOLUTION_URL}}/message/sendText/{{$env.EVOLUTION_INSTANCE}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.EVOLUTION_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ number: $json.numero, text: $json.respostaTexto }) }}",
+        "options": {}
+      },
+      "id": "b1000001-0000-4a11-8a11-000000000014",
+      "name": "Enviar resposta via Evolution",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2740,
+        320
+      ],
+      "notesInFlow": true,
+      "notes": "Nó adicional além do fluxo literal pedido — sem ele a IA nunca chega a responder de fato o cliente no WhatsApp. Ver docs/integracoes/claude.md."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, briefingId: $json.briefingId, numero: $json.numero }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "b1000001-0000-4a11-8a11-000000000015",
+      "name": "Responder webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2960,
+        320
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Receber mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receber mensagem": {
+      "main": [
+        [
+          {
+            "node": "É eco da própria IA?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É eco da própria IA?": {
+      "main": [
+        [
+          {
+            "node": "Ignorar eco",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Buscar conversa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar conversa": {
+      "main": [
+        [
+          {
+            "node": "Resolver estado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolver estado": {
+      "main": [
+        [
+          {
+            "node": "Buscar mensagens anteriores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar mensagens anteriores": {
+      "main": [
+        [
+          {
+            "node": "Já existe briefing?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Já existe briefing?": {
+      "main": [
+        [
+          {
+            "node": "Buscar briefing atual",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Montar contexto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar briefing atual": {
+      "main": [
+        [
+          {
+            "node": "Montar contexto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar contexto": {
+      "main": [
+        [
+          {
+            "node": "Enviar para Claude",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar para Claude": {
+      "main": [
+        [
+          {
+            "node": "Receber resposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receber resposta": {
+      "main": [
+        [
+          {
+            "node": "Salvar mensagem do cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvar mensagem do cliente": {
+      "main": [
+        [
+          {
+            "node": "Salvar mensagem da IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvar mensagem da IA": {
+      "main": [
+        [
+          {
+            "node": "Criar ou atualizar briefing?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar ou atualizar briefing?": {
+      "main": [
+        [
+          {
+            "node": "Atualizar briefing existente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Criar novo briefing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualizar briefing existente": {
+      "main": [
+        [
+          {
+            "node": "Atualizar conversa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar novo briefing": {
+      "main": [
+        [
+          {
+            "node": "Extrair novo briefingId",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extrair novo briefingId": {
+      "main": [
+        [
+          {
+            "node": "Atualizar conversa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualizar conversa": {
+      "main": [
+        [
+          {
+            "node": "Enviar resposta via Evolution",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar resposta via Evolution": {
+      "main": [
+        [
+          {
+            "node": "Responder webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "description": "Fluxo: Webhook -> Receber mensagem -> Montar contexto -> Enviar para Claude -> Receber resposta -> Salvar conversa -> Salvar briefing atualizado -> Responder webhook. Inclui também: filtro de eco (mensagens enviadas pela própria instância), resolução de conversa/briefing existentes via Firestore, e um nó de envio da resposta via Evolution API (adicional ao fluxo literal, necessário para fechar o ciclo de atendimento). Ver docs/integracoes/claude.md. Todas as coleções (conversations, messages, briefings) incluem companyId (multi-tenant); o ID da conversa passa a ser `${companyId}_${numero}`."
+  }
+}
