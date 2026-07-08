@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Loader2, DatabaseZap, Plus, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { statusStyles, complexidadeDot } from "../lib/derive";
 
 export function Tooltip({ text, children }) {
@@ -99,23 +99,6 @@ export function InfoRow({ icon: Icon, label, value, highlight }) {
   );
 }
 
-/**
- * Botão para popular o Firestore com dados de teste — o próprio App.jsx só
- * passa a prop `onSeed` para as páginas quando `import.meta.env.DEV` é
- * verdadeiro, então este componente nunca é renderizado numa build de produção.
- */
-export function SeedButton({ onSeed, seeding }) {
-  return (
-    <button
-      onClick={onSeed}
-      disabled={seeding}
-      className="flex items-center gap-2 rounded-lg bg-rose-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-rose-700 disabled:opacity-60"
-    >
-      {seeding ? <Loader2 className="h-4 w-4 animate-spin" /> : <DatabaseZap className="h-4 w-4" />}
-      {seeding ? "Populando Firestore…" : "Popular com dados de teste (dev)"}
-    </button>
-  );
-}
 
 export function Toggle({ checked, onChange }) {
   return (

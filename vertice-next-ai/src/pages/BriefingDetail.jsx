@@ -101,8 +101,8 @@ function MessageBubble({ autor, texto, hora }) {
  * Exibe a timeline da conversa. Se o briefing tiver `conversationId` (ou seja,
  * foi originado por uma conversa real do WhatsApp processada pelo workflow
  * "Atendimento IA"), ouve a coleção `messages` do Firestore em tempo real.
- * Caso contrário (briefings criados pela simulação de atendimento em
- * desenvolvimento), usa o array `mensagens` embutido no próprio documento.
+ * Caso contrário (briefings sem conversa vinculada no Firestore), usa o
+ * array `mensagens` embutido no próprio documento.
  * Em ambos os casos, o frontend só LÊ — nunca grava mensagens.
  */
 function TimelinePanel({ briefing }) {

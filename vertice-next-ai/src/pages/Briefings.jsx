@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Search, SlidersHorizontal, DatabaseZap } from "lucide-react";
-import { PageHeader, EmptyState, SeedButton, Tooltip } from "../components/ui";
+import { Search, SlidersHorizontal, Inbox } from "lucide-react";
+import { PageHeader, EmptyState, Tooltip } from "../components/ui";
 import BriefingsTable from "../components/BriefingsTable";
 
-export default function BriefingsPage({ briefings, loading, onSelect, onSeed, seeding }) {
+export default function BriefingsPage({ briefings, loading, onSelect }) {
   const [query, setQuery] = useState("");
   const filtered = briefings.filter((b) => `${b.cliente} ${b.evento}`.toLowerCase().includes(query.toLowerCase()));
   const semDados = !loading && briefings.length === 0;
@@ -34,10 +34,9 @@ export default function BriefingsPage({ briefings, loading, onSelect, onSeed, se
         </div>
         {semDados ? (
           <EmptyState
-            icon={DatabaseZap}
-            title="Nenhum briefing no Firestore ainda"
-            description={onSeed ? "Popule com dados de teste para começar." : "Aguarde novos atendimentos chegarem."}
-            action={onSeed && <SeedButton onSeed={onSeed} seeding={seeding} />}
+            icon={Inbox}
+            title="Nenhum briefing encontrado."
+            description="Assim que novos atendimentos chegarem pelo WhatsApp, eles aparecerão aqui."
           />
         ) : (
           <BriefingsTable items={filtered} onSelect={onSelect} loading={loading} />

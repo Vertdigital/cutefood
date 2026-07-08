@@ -9,7 +9,7 @@ export function LandingPage({ onEntrar }) {
         </span>
         <h1 className="text-xl font-semibold tracking-tight text-stone-900 dark:text-stone-50">Vértice Next AI</h1>
         <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">A plataforma de atendimento inteligente da Vértice, conectada ao Firestore em tempo real.</p>
-        <span className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 text-xs font-medium text-rose-700 dark:bg-rose-950/50 dark:text-rose-300">Projeto Piloto: CuteFood CWB</span>
+        <span className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 text-xs font-medium text-rose-700 dark:bg-rose-950/50 dark:text-rose-300">Painel CuteFood CWB</span>
 
         <button
           onClick={onEntrar}

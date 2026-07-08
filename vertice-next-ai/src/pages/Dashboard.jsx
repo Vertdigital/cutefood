@@ -1,8 +1,8 @@
-import { AlertTriangle, MessageCircle, Inbox, Clock3, Loader2, PackageCheck, DatabaseZap } from "lucide-react";
-import { PageHeader, MetricCard, EmptyState, Skeleton, SeedButton } from "../components/ui";
+import { AlertTriangle, Inbox, Clock3, Loader2, PackageCheck } from "lucide-react";
+import { PageHeader, MetricCard, EmptyState, Skeleton } from "../components/ui";
 import BriefingsTable from "../components/BriefingsTable";
 
-export default function DashboardPage({ briefings, loading, error, onSelect, onSeeAll, onSimular, onSeed, seeding }) {
+export default function DashboardPage({ briefings, loading, error, onSelect, onSeeAll }) {
   if (error) {
     return (
       <EmptyState
@@ -24,25 +24,16 @@ export default function DashboardPage({ briefings, loading, error, onSelect, onS
 
   return (
     <div>
-      <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+      <div className="mb-6">
         <PageHeader title="Bom dia 👋" subtitle="Aqui está o resumo dos atendimentos de hoje, direto do Firestore." />
-        <button onClick={onSimular} className="flex flex-none items-center gap-2 rounded-lg bg-rose-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-rose-700">
-          <MessageCircle className="h-4 w-4" />
-          Simular novo atendimento
-        </button>
       </div>
 
       {semDados ? (
         <div className="rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
           <EmptyState
-            icon={DatabaseZap}
-            title="Sua coleção 'briefings' está vazia"
-            description={
-              onSeed
-                ? "Popule com dados de teste para ver o Dashboard, o Pipeline e o Analytics funcionando com dados reais do Firestore."
-                : "Aguarde a chegada de novos atendimentos — nenhum dado de teste é usado em produção."
-            }
-            action={onSeed && <SeedButton onSeed={onSeed} seeding={seeding} />}
+            icon={Inbox}
+            title="Nenhum briefing encontrado."
+            description="Assim que novos atendimentos chegarem pelo WhatsApp, eles aparecerão aqui."
           />
         </div>
       ) : (
