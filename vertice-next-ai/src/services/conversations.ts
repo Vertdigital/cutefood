@@ -1,12 +1,16 @@
 /**
  * Service de leitura das coleções `conversations` e `messages`.
  *
- * Este service é **somente leitura** — o frontend nunca grava nessas
- * coleções. Quem grava é exclusivamente o workflow "Atendimento IA"
- * (workflows/atendimento-ia.json), rodando no n8n. Ver docs/integracoes/claude.md.
+ * Este service é **somente leitura**, com uma única exceção: pausar ou
+ * reativar o atendimento automático da IA (campo `atendimentoHumano`),
+ * via `setAtendimentoHumano`. Fora essa exceção, quem grava é
+ * exclusivamente o workflow "Atendimento IA" (workflows/atendimento-ia.json),
+ * rodando no n8n. Ver docs/integracoes/claude.md.
  *
  * O frontend só ouve o Firestore (onSnapshot) e exibe: mensagens da
- * conversa e o briefing correspondente.
+ * conversa e o briefing correspondente — e pode alternar `atendimentoHumano`
+ * quando a proprietária decide assumir ou devolver a conversa para a IA
+ * (HUMAN-001).
  *
  * Multi-tenant (ver docs/arquitetura/CF-070-modelagem-multi-tenant.md):
  * toda `conversation` e `message` carrega um `companyId`. Como o ID do
@@ -15,7 +19,7 @@
  * `${companyId}_${telefone}` — não mais o telefone puro.
  */
 
-import { collection, query, where, orderBy, onSnapshot, doc, type Unsubscribe } from "firebase/firestore";
+import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, type Unsubscribe } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 
 export interface Mensagem {
@@ -37,6 +41,8 @@ export interface Conversa {
   briefingId?: string;
   ultimaMensagem?: string;
   status?: string;
+  /** true quando a proprietária assumiu o atendimento manualmente (IA pausada para esta conversa). */
+  atendimentoHumano?: boolean;
   updatedAt?: unknown;
 }
 
@@ -69,4 +75,18 @@ export function subscribeConversation(conversationId: string, onData: (conversa:
       onError?.(error);
     }
   );
+}
+
+/**
+ * HUMAN-001 — Pausa ou reativa o atendimento automático da IA para uma
+ * conversa específica. É a única escrita que o frontend faz nas coleções
+ * deste arquivo: altera exclusivamente o campo `atendimentoHumano` (via
+ * `updateDoc`, atualização parcial), sem tocar em nenhum outro campo do
+ * documento — os demais continuam sendo gravados só pelo n8n.
+ *
+ * O workflow "Atendimento IA" deve checar este campo antes de chamar o
+ * Claude: se `true`, não responder automaticamente.
+ */
+export async function setAtendimentoHumano(conversationId: string, valor: boolean): Promise<void> {
+  await updateDoc(doc(db, "conversations", conversationId), { atendimentoHumano: valor });
 }

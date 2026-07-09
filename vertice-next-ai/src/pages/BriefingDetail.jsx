@@ -3,7 +3,7 @@ import { ArrowLeft, Trash2, Pencil, X, Save, Phone, Sparkles, Calendar, Users, S
 import { initials } from "../lib/derive";
 import { formatDataCompleta } from "../utils/date";
 import { InfoRow, StatusPill, ComplexidadeTag, Tooltip } from "../components/ui";
-import { subscribeMessages } from "../services/conversations";
+import { subscribeMessages, subscribeConversation, setAtendimentoHumano } from "../services/conversations";
 
 const CAMPOS_EDITAVEIS = [
   { key: "cliente", label: "Cliente", type: "text" },
@@ -103,11 +103,19 @@ function MessageBubble({ autor, texto, hora }) {
  * "Atendimento IA"), ouve a coleção `messages` do Firestore em tempo real.
  * Caso contrário (briefings sem conversa vinculada no Firestore), usa o
  * array `mensagens` embutido no próprio documento.
- * Em ambos os casos, o frontend só LÊ — nunca grava mensagens.
+ * Em ambos os casos, o frontend só LÊ mensagens — nunca grava.
+ *
+ * HUMAN-001: quando há `conversationId`, este painel também assina o
+ * documento da conversa (`subscribeConversation`) para saber se a IA está
+ * ativa ou pausada, e permite à proprietária alternar esse estado
+ * (`setAtendimentoHumano`) — a única escrita feita pelo frontend nessas
+ * coleções.
  */
 function TimelinePanel({ briefing }) {
   const [mensagensFirestore, setMensagensFirestore] = useState(null);
   const [erro, setErro] = useState(null);
+  const [conversa, setConversa] = useState(null);
+  const [atualizandoAtendimento, setAtualizandoAtendimento] = useState(false);
 
   useEffect(() => {
     if (!briefing.conversationId) {
@@ -118,14 +126,56 @@ function TimelinePanel({ briefing }) {
     return () => unsubscribe();
   }, [briefing.conversationId]);
 
+  useEffect(() => {
+    if (!briefing.conversationId) {
+      setConversa(null);
+      return undefined;
+    }
+    const unsubscribe = subscribeConversation(briefing.conversationId, setConversa);
+    return () => unsubscribe();
+  }, [briefing.conversationId]);
+
   const mensagens = briefing.conversationId ? mensagensFirestore : briefing.mensagens;
+  const atendimentoHumano = conversa?.atendimentoHumano === true;
+
+  const handleToggleAtendimento = async () => {
+    if (!briefing.conversationId) return;
+    setAtualizandoAtendimento(true);
+    try {
+      await setAtendimentoHumano(briefing.conversationId, !atendimentoHumano);
+    } finally {
+      setAtualizandoAtendimento(false);
+    }
+  };
 
   return (
     <div className="flex h-full flex-col rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
-      <div className="flex items-center gap-2 border-b border-stone-200 px-5 py-4 dark:border-stone-800">
-        <MessageCircle className="h-4 w-4 text-stone-400 dark:text-stone-500" />
-        <h2 className="text-sm font-semibold text-stone-900 dark:text-stone-50">Timeline da conversa</h2>
-        {briefing.conversationId && <span className="ml-auto text-[10px] font-medium text-stone-400 dark:text-stone-500">ao vivo · Firestore</span>}
+      <div className="border-b border-stone-200 px-5 py-4 dark:border-stone-800">
+        <div className="flex items-center gap-2">
+          <MessageCircle className="h-4 w-4 text-stone-400 dark:text-stone-500" />
+          <h2 className="text-sm font-semibold text-stone-900 dark:text-stone-50">Timeline da conversa</h2>
+          {briefing.conversationId && <span className="ml-auto text-[10px] font-medium text-stone-400 dark:text-stone-500">ao vivo · Firestore</span>}
+        </div>
+        {briefing.conversationId && (
+          <div className="mt-3 flex items-center justify-between gap-2">
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${
+                atendimentoHumano
+                  ? "bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400"
+                  : "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"
+              }`}
+            >
+              {atendimentoHumano ? "Atendimento humano · IA pausada" : "IA ativa"}
+            </span>
+            <button
+              onClick={handleToggleAtendimento}
+              disabled={atualizandoAtendimento}
+              className="rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-600 transition-colors hover:bg-stone-50 disabled:opacity-60 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800"
+            >
+              {atualizandoAtendimento ? "Atualizando…" : atendimentoHumano ? "Devolver para IA" : "Assumir atendimento"}
+            </button>
+          </div>
+        )}
       </div>
       <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
         {erro && <p className="text-xs text-rose-600 dark:text-rose-400">Não foi possível carregar as mensagens desta conversa.</p>}
