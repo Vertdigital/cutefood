@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
-import { buildTestApp } from "./helpers";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { buildTestApp, loginAndGetToken } from "./helpers";
 
 const fakeBriefing = {
   id: 1,
@@ -22,12 +22,18 @@ const fakeBriefing = {
 // Dates viram string ISO quando serializados como JSON pela resposta HTTP.
 const fakeBriefingJSON = JSON.parse(JSON.stringify(fakeBriefing));
 
+async function authHeader(app: ReturnType<typeof buildTestApp>) {
+  const token = await loginAndGetToken(app);
+  return { authorization: `Bearer ${token}` };
+}
+
 describe("GET /briefings", () => {
   it("retorna a lista vinda do repository", async () => {
     const findAll = vi.fn(async () => [fakeBriefing]);
     const app = buildTestApp({ briefingsRepository: { findAll } });
+    const headers = await authHeader(app);
 
-    const res = await app.inject({ method: "GET", url: "/briefings" });
+    const res = await app.inject({ method: "GET", url: "/briefings", headers });
 
     expect(res.statusCode).toBe(200);
     expect(res.json()).toEqual({ data: [fakeBriefingJSON] });
@@ -37,8 +43,13 @@ describe("GET /briefings", () => {
   it("repassa filtros de status e telefone pro repository", async () => {
     const findAll = vi.fn(async () => []);
     const app = buildTestApp({ briefingsRepository: { findAll } });
+    const headers = await authHeader(app);
 
-    await app.inject({ method: "GET", url: "/briefings?status=aguardando_orcamento&telefone=5541999998888&limit=5&offset=10" });
+    await app.inject({
+      method: "GET",
+      url: "/briefings?status=aguardando_orcamento&telefone=5541999998888&limit=5&offset=10",
+      headers,
+    });
 
     expect(findAll).toHaveBeenCalledWith({
       status: "aguardando_orcamento",
@@ -50,7 +61,9 @@ describe("GET /briefings", () => {
 
   it("retorna 400 quando limit não é um número válido", async () => {
     const app = buildTestApp();
-    const res = await app.inject({ method: "GET", url: "/briefings?limit=abc" });
+    const headers = await authHeader(app);
+
+    const res = await app.inject({ method: "GET", url: "/briefings?limit=abc", headers });
 
     expect(res.statusCode).toBe(400);
     expect(res.json().error).toBeDefined();
@@ -61,8 +74,9 @@ describe("GET /briefings/:id", () => {
   it("retorna o briefing quando existe", async () => {
     const findById = vi.fn(async (id: number) => (id === 1 ? fakeBriefing : null));
     const app = buildTestApp({ briefingsRepository: { findById } });
+    const headers = await authHeader(app);
 
-    const res = await app.inject({ method: "GET", url: "/briefings/1" });
+    const res = await app.inject({ method: "GET", url: "/briefings/1", headers });
 
     expect(res.statusCode).toBe(200);
     expect(res.json()).toEqual({ data: fakeBriefingJSON });
@@ -71,8 +85,9 @@ describe("GET /briefings/:id", () => {
 
   it("retorna 404 quando não existe", async () => {
     const app = buildTestApp({ briefingsRepository: { findById: async () => null } });
+    const headers = await authHeader(app);
 
-    const res = await app.inject({ method: "GET", url: "/briefings/999" });
+    const res = await app.inject({ method: "GET", url: "/briefings/999", headers });
 
     expect(res.statusCode).toBe(404);
     expect(res.json()).toEqual({ error: "Briefing não encontrado" });
@@ -80,7 +95,9 @@ describe("GET /briefings/:id", () => {
 
   it("retorna 400 quando :id não é numérico", async () => {
     const app = buildTestApp();
-    const res = await app.inject({ method: "GET", url: "/briefings/abc" });
+    const headers = await authHeader(app);
+
+    const res = await app.inject({ method: "GET", url: "/briefings/abc", headers });
 
     expect(res.statusCode).toBe(400);
   });

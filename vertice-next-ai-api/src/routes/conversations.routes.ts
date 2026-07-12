@@ -3,7 +3,7 @@ import type { ConversationsRepository } from "../repositories/conversations.repo
 import { ConversationListQuerySchema } from "../schemas/conversation.schema";
 
 export function registerConversationsRoutes(app: FastifyInstance, repository: ConversationsRepository) {
-  app.get("/conversations", async (request, reply) => {
+  app.get("/conversations", { preHandler: [app.authenticate] }, async (request, reply) => {
     const parsedQuery = ConversationListQuerySchema.safeParse(request.query);
     if (!parsedQuery.success) {
       return reply.status(400).send({

@@ -3,7 +3,7 @@ import type { BriefingsRepository } from "../repositories/briefings.repository";
 import { BriefingIdParamSchema, BriefingListQuerySchema } from "../schemas/briefing.schema";
 
 export function registerBriefingsRoutes(app: FastifyInstance, repository: BriefingsRepository) {
-  app.get("/briefings", async (request, reply) => {
+  app.get("/briefings", { preHandler: [app.authenticate] }, async (request, reply) => {
     const parsedQuery = BriefingListQuerySchema.safeParse(request.query);
     if (!parsedQuery.success) {
       return reply.status(400).send({
@@ -16,7 +16,7 @@ export function registerBriefingsRoutes(app: FastifyInstance, repository: Briefi
     return { data: briefings };
   });
 
-  app.get("/briefings/:id", async (request, reply) => {
+  app.get("/briefings/:id", { preHandler: [app.authenticate] }, async (request, reply) => {
     const parsedParams = BriefingIdParamSchema.safeParse(request.params);
     if (!parsedParams.success) {
       return reply.status(400).send({
